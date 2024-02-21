@@ -10,10 +10,15 @@ LCURLY : '{' ;
 RCURLY : '}' ;
 LPAREN : '(' ;
 RPAREN : ')' ;
+NEG : '!' ;
 MUL : '*' ;
+DIV : '/' ;
 ADD : '+' ;
+SUB : '-' ;
 
+IMPORT : 'import' ;
 CLASS : 'class' ;
+EXTENDS : 'extends' ;
 INT : 'int' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
@@ -24,13 +29,18 @@ ID : [a-zA-Z]+ ;
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
-    : classDecl EOF
+    : (importDeclaration)* classDecl EOF
     ;
 
+importDeclaration
+    : IMPORT ID('.'ID)*';'
+    ;
 
 classDecl
     : CLASS name=ID
+        (EXTENDS ID )?
         LCURLY
+        varDecl*
         methodDecl*
         RCURLY
     ;
@@ -59,11 +69,9 @@ stmt
     ;
 
 expr
-    : expr op= MUL expr #BinaryExpr //
-    | expr op= ADD expr #BinaryExpr //
+    : NEG expr #Negation
+    | expr op=(MUL|DIV) expr #BinaryExpr //
+    | expr op= (ADD|SUB) expr #BinaryExpr //
     | value=INTEGER #IntegerLiteral //
     | name=ID #VarRefExpr //
     ;
-
-
-
