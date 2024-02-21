@@ -30,9 +30,12 @@ RETURN : 'return' ;
 NEW : 'new' ;
 
 LENGTH : 'length' ;
+IF : 'if' ;
+ELSE : 'else' ;
+WHILE : 'while' ;
 
 INTEGER : [0-9]+ ;
-ID : [a-zA-Z]+ ;
+ID : [_$a-zA-Z][_$a-zA-Z0-9]* ;
 
 WS : [ \t\n\r\f]+ -> skip ;
 
@@ -76,7 +79,11 @@ param
     ;
 
 stmt
-    : expr EQUALS expr SEMI #AssignStmt //
+    : LCURLY stmt* RCURLY #StmtBody
+    | IF LPAREN expr RPAREN stmt ELSE stmt #IfStmt
+    | WHILE LPAREN expr RPAREN stmt #WhileStmt
+    | expr SEMI #DefaultStmt
+    | expr EQUALS expr SEMI #AssignStmt
     | RETURN expr SEMI #ReturnStmt
     ;
 

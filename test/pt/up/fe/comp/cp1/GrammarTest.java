@@ -17,9 +17,6 @@ import org.junit.Test;
 import pt.up.fe.comp.TestUtils;
 
 public class GrammarTest {
-
-
-    // TODO: Set name of imports grammar rule
     private static final String IMPORT = "importDecl";
     // TODO: Set name of main method grammar rule
     private static final String MAIN_METHOD = "CHANGE ME! - name of main method grammar rule";
@@ -47,10 +44,10 @@ public class GrammarTest {
         TestUtils.parseVerbose("class Foo {int a; int[] b; int c; boolean d; Bar e;}");
     }
 
-   /*@Test
+   @Test
     public void testVarDeclString() {
         TestUtils.parseVerbose("String aString;", "VarDecl");
-    }*/
+    }
 
     @Test
     public void testMainMethodEmpty() {
