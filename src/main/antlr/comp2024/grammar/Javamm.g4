@@ -96,7 +96,7 @@ expr
     | expr '.' LENGTH # LengthExpr
     | expr '[' index=expr ']' #ArrayAccess
     | NEW INT '[' index=expr ']' # NewArray
-    | NEW ID '[' ']' # NewClass
+    | NEW ID '(' ')' # NewClass
     | '[' (expr (',' expr)*)? ']' # ArrayInit
     | expr op=(MUL|DIV) expr #BinaryOp
     | expr op=(ADD|SUB) expr #BinaryOp
