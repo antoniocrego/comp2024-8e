@@ -5,6 +5,7 @@ grammar Javamm;
 }
 
 EQUALS : '=';
+ELLIPSIS : '...';
 SEMI : ';' ;
 COMMA : ',' ;
 PERIOD : '.' ;
@@ -19,6 +20,8 @@ MUL : '*' ;
 DIV : '/' ;
 ADD : '+' ;
 SUB : '-' ;
+LT : '<' ;
+AND : '&&' ;
 
 IMPORT : 'import' ;
 CLASS : 'class' ;
@@ -61,10 +64,11 @@ varDecl
     ;
 
 type
-    : name= INT
-    | name= INT LSPAREN RSPAREN
-    | name= BOOLEAN
-    | name= ID
+    : name=INT
+    | name=INT '[' ']'
+    | name=INT '...'
+    | name=BOOLEAN
+    | name=ID
     ;
 
 methodDecl locals[boolean isPublic=false]
@@ -80,22 +84,24 @@ param
 
 stmt
     : LCURLY stmt* RCURLY #StmtBody
-    | IF LPAREN expr RPAREN stmt ELSE stmt #IfStmt
-    | WHILE LPAREN expr RPAREN stmt #WhileStmt
-    | expr SEMI #DefaultStmt
-    | expr EQUALS expr SEMI #AssignStmt
-    | RETURN expr SEMI #ReturnStmt
+    | IF '(' expr ')' stmt ELSE stmt #IfStmt
+    | WHILE '(' expr ')' stmt #WhileStmt
+    | expr ';' #DefaultStmt
+    | expr EQUALS expr ';' #AssignStmt
+    | RETURN expr ';' #ReturnStmt
     ;
 
 expr
     : NEG expr #Negation
-    | expr op=(MUL|DIV) expr #BinaryExpr //
-    | expr op= (ADD|SUB) expr #BinaryExpr //
     | expr '.' LENGTH # LengthExpr
-    | expr '[' index=expr ']' #ArrayAccess //
-    | NEW INT '[' index=expr ']' # NewArray //
-    | NEW ID '[' ']' # NewClass //
-    | '[' (expr (',' expr)*)? ']' # ArrayInit //
-    | value=INTEGER #IntegerLiteral //
-    | name=ID #VarRefExpr //
+    | expr '[' index=expr ']' #ArrayAccess
+    | NEW INT '[' index=expr ']' # NewArray
+    | NEW ID '[' ']' # NewClass
+    | '[' (expr (',' expr)*)? ']' # ArrayInit
+    | expr op=(MUL|DIV) expr #BinaryOp
+    | expr op=(ADD|SUB) expr #BinaryOp
+    | expr op=LT expr #BinaryOp
+    | expr op=AND expr #BinaryOp
+    | value=INTEGER #IntegerLiteral
+    | name=ID #VarRefExpr
     ;
