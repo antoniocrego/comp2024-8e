@@ -10,6 +10,8 @@ LCURLY : '{' ;
 RCURLY : '}' ;
 LPAREN : '(' ;
 RPAREN : ')' ;
+LSPAREN : '[' ;
+RSPAREN : ']' ;
 NEG : '!' ;
 MUL : '*' ;
 DIV : '/' ;
@@ -20,6 +22,7 @@ IMPORT : 'import' ;
 CLASS : 'class' ;
 EXTENDS : 'extends' ;
 INT : 'int' ;
+BOOLEAN : 'boolean' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
 
@@ -54,7 +57,11 @@ varDecl
     ;
 
 type
-    : name= INT ;
+    : name= INT
+    | name= INT LSPAREN RSPAREN
+    | name= BOOLEAN
+    | name= ID
+    ;
 
 methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
