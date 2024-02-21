@@ -6,6 +6,8 @@ grammar Javamm;
 
 EQUALS : '=';
 SEMI : ';' ;
+COMMA : ',' ;
+PERIOD : '.' ;
 LCURLY : '{' ;
 RCURLY : '}' ;
 LPAREN : '(' ;
@@ -25,8 +27,11 @@ INT : 'int' ;
 BOOLEAN : 'boolean' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
+NEW : 'new' ;
 
-INTEGER : [0-9] ;
+LENGTH : 'length' ;
+
+INTEGER : [0-9]+ ;
 ID : [a-zA-Z]+ ;
 
 WS : [ \t\n\r\f]+ -> skip ;
@@ -79,6 +84,11 @@ expr
     : NEG expr #Negation
     | expr op=(MUL|DIV) expr #BinaryExpr //
     | expr op= (ADD|SUB) expr #BinaryExpr //
+    | expr '.' LENGTH # LengthExpr
+    | expr '[' index=expr ']' #ArrayAccess //
+    | NEW INT '[' index=expr ']' # NewArray //
+    | NEW ID '[' ']' # NewClass //
+    | '[' (expr (',' expr)*)? ']' # ArrayInit //
     | value=INTEGER #IntegerLiteral //
     | name=ID #VarRefExpr //
     ;
