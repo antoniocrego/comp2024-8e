@@ -10,6 +10,8 @@ LCURLY : '{' ;
 RCURLY : '}' ;
 LPAREN : '(' ;
 RPAREN : ')' ;
+LSPAREN : '[' ;
+RSPAREN : ']' ;
 NEG : '!' ;
 MUL : '*' ;
 DIV : '/' ;
@@ -20,6 +22,7 @@ IMPORT : 'import' ;
 CLASS : 'class' ;
 EXTENDS : 'extends' ;
 INT : 'int' ;
+BOOLEAN : 'boolean' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
 
@@ -29,10 +32,10 @@ ID : [a-zA-Z]+ ;
 WS : [ \t\n\r\f]+ -> skip ;
 
 program
-    : (importDeclaration)* classDecl EOF
+    : (importDecl)* classDecl EOF
     ;
 
-importDeclaration
+importDecl
     : IMPORT ID('.'ID)*';'
     ;
 
@@ -50,7 +53,11 @@ varDecl
     ;
 
 type
-    : name= INT ;
+    : name= INT
+    | name= INT LSPAREN RSPAREN
+    | name= BOOLEAN
+    | name= ID
+    ;
 
 methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
