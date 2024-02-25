@@ -4,33 +4,23 @@ grammar Javamm;
     package pt.up.fe.comp2024;
 }
 
-EQUALS : '=';
-ELLIPSIS : '...';
-SEMI : ';' ;
-COMMA : ',' ;
-PERIOD : '.' ;
-LCURLY : '{' ;
-RCURLY : '}' ;
-LPAREN : '(' ;
-RPAREN : ')' ;
-LSPAREN : '[' ;
-RSPAREN : ']' ;
-NEG : '!' ;
-MUL : '*' ;
-DIV : '/' ;
-ADD : '+' ;
-SUB : '-' ;
-LT : '<' ;
-AND : '&&' ;
+// Method access specifiers
+ACCESS_TYPE: ( FINAL | STATIC | ABSTRACT | TRANSIENT | SYNCHRONIZED | VOLATILE ) ;
+FINAL: 'final' ;
+STATIC: 'static' ;
+ABSTRACT: 'abstract';
+TRANSIENT: 'transient' ;
+SYNCHRONIZED: 'synchronized' ;
+VOLATILE: 'volatile' ;
 
 IMPORT : 'import' ;
-CLASS : 'class' ;
 EXTENDS : 'extends' ;
-INT : 'int' ;
 BOOLEAN : 'boolean' ;
-PUBLIC : 'public' ;
 RETURN : 'return' ;
-NEW : 'new' ;
+
+CLASS : 'class' ;
+
+PUBLIC : 'public' ;
 
 LENGTH : 'length' ;
 IF : 'if' ;
@@ -53,59 +43,63 @@ importDecl
 classDecl
     : CLASS name=ID
         (EXTENDS ID )?
-        LCURLY
+        '{'
         varDecl*
         methodDecl*
-        RCURLY
+        '}'
     ;
 
 varDecl
-    : type name=ID SEMI
+    : type name=ID ';'
     ;
 
 type
-    : name=INT
-    | name=INT '[' ']'
-    | name=INT '...'
-    | name=BOOLEAN
-    | name=ID
+    : type '[' ']' #ArrayType
+    | type '...' #VarargType
+    | id=( 'boolean' | 'byte' | 'char' | 'short' | 'int' | 'long' | 'float' | 'double' ) #PrimitiveType
+    | id='void' #VoidType
+    | id=ID #CustomType
+    ;
+
+params
+    : params ',' params
+    | type name=ID
     ;
 
 methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
+        ACCESS_TYPE?
         type name=ID
-        LPAREN param RPAREN
-        LCURLY varDecl* stmt* RCURLY
-    ;
-
-param
-    : type name=ID
+        '(' params? ')'
+        '{' varDecl* stmt* '}'
     ;
 
 stmt
-    : LCURLY stmt* RCURLY #StmtBody
+    : '{' stmt* '}' #StmtBody
     | IF '(' expr ')' stmt ELSE stmt #IfStmt
     | WHILE '(' expr ')' stmt #WhileStmt
     | expr ';' #DefaultStmt
-    | expr EQUALS expr ';' #AssignStmt
+    | expr '=' expr ';' #AssignStmt
     | RETURN expr ';' #ReturnStmt
     ;
 
 args
-    : expr ( ',' expr ) ;
+    : expr ( ',' expr )*
+    ;
 
 expr
-    : NEG expr #Negation
+    : '(' expr ')' #ParenExpr
+    | op='!' expr #UnaryOp
     | expr '.' LENGTH # LengthExpr
     | expr '.' ID '(' args? ')' #FuncCall
     | expr '[' index=expr ']' #ArrayAccess
-    | NEW INT '[' index=expr ']' # NewArray
-    | NEW ID '(' ')' # NewClass
-    | '[' (expr (',' expr)*)? ']' # ArrayInit
-    | expr op=(MUL|DIV) expr #BinaryOp
-    | expr op=(ADD|SUB) expr #BinaryOp
-    | expr op=LT expr #BinaryOp
-    | expr op=AND expr #BinaryOp
+    | 'new' type '[' size=expr ']' # NewArray
+    | 'new' ID '(' ')' # NewClass //this doesn't allow passing parameters to the constructor
+    | '[' args ']' # ArrayInit
+    | expr op=('*' | '/') expr #BinaryOp
+    | expr op=('+' | '-') expr #BinaryOp
+    | expr op=( '<' | '<=' | '>' | '>=' ) expr #BinaryOp
+    | expr op='&&' expr #BinaryOp
     | value=INTEGER #IntegerLiteral
     | name=ID #VarRefExpr
     ;
