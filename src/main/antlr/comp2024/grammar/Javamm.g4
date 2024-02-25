@@ -91,9 +91,13 @@ stmt
     | RETURN expr ';' #ReturnStmt
     ;
 
+args
+    : expr ( ',' expr ) ;
+
 expr
     : NEG expr #Negation
     | expr '.' LENGTH # LengthExpr
+    | expr '.' ID '(' args? ')' #FuncCall
     | expr '[' index=expr ']' #ArrayAccess
     | NEW INT '[' index=expr ']' # NewArray
     | NEW ID '(' ')' # NewClass
