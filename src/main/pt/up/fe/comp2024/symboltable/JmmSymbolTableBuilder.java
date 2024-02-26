@@ -14,6 +14,7 @@ import java.util.Map;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
 import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
+import static pt.up.fe.comp2024.ast.Kind.PARAM;
 
 public class JmmSymbolTableBuilder {
 
@@ -48,10 +49,7 @@ public class JmmSymbolTableBuilder {
 
         Map<String, List<Symbol>> map = new HashMap<>();
 
-        var intType = new Type(TypeUtils.getIntTypeName(), false);
-
-        classDecl.getChildren(METHOD_DECL).stream()
-                .forEach(method -> map.put(method.get("name"), Arrays.asList(new Symbol(intType, method.getJmmChild(1).get("name")))));
+        classDecl.getChildren(METHOD_DECL).forEach(method -> map.put(method.get("name"), method.getChildren(PARAM).stream().map(param-> new Symbol(TypeUtils.getParamType(param), param.get("name"))).toList()));
 
         return map;
     }

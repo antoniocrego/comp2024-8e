@@ -61,8 +61,8 @@ type
     | id=ID #CustomType
     ;
 
-params
-    : params ',' params
+param
+    : param ',' param
     | type name=ID
     ;
 
@@ -70,7 +70,7 @@ methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
         ACCESS_TYPE?
         type name=ID
-        '(' params? ')'
+        '(' param? ')'
         '{' varDecl* stmt* '}'
     ;
 

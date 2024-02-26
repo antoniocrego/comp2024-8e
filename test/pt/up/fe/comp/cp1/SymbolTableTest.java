@@ -125,6 +125,7 @@ public class SymbolTableTest {
         assertEquals(1, methods.size());
 
         var parameters = st.getParameters(methods.get(0));
+        System.out.println(parameters);
         assertEquals(3, parameters.size());
         assertEquals("Parameter 1", "int", parameters.get(0).getType().getName());
         assertEquals("Parameter 2", "boolean", parameters.get(1).getType().getName());

@@ -12,6 +12,10 @@ public class TypeUtils {
         return INT_TYPE_NAME;
     }
 
+    public static Type getParamType(JmmNode paramExpr) {
+        return new Type(INT_TYPE_NAME, false);
+    }
+
     /**
      * Gets the {@link Type} of an arbitrary expression.
      *
@@ -51,7 +55,6 @@ public class TypeUtils {
         // TODO: Simple implementation that needs to be expanded
         return new Type(INT_TYPE_NAME, false);
     }
-
 
     /**
      * @param sourceType
