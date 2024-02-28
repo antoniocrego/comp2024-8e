@@ -23,6 +23,9 @@ public class JmmSymbolTableBuilder {
 
         SpecsCheck.checkArgument(Kind.CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + classDecl);
         String className = classDecl.get("name");
+        String superClassName = classDecl.hasAttribute("superName")
+                ? classDecl.get("superName")
+                : null;
 
         var imports = buildImports(root);
         var methods = buildMethods(classDecl);
@@ -31,7 +34,7 @@ public class JmmSymbolTableBuilder {
         var locals = buildLocals(classDecl);
         var fields = buildFields(classDecl);
 
-        return new JmmSymbolTable(imports, className, methods, returnTypes, params, locals, fields);
+        return new JmmSymbolTable(imports, className, superClassName, methods, returnTypes, params, locals, fields);
     }
 
     private static List<String> buildImports(JmmNode root){

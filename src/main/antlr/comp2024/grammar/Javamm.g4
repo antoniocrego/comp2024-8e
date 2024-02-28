@@ -41,7 +41,7 @@ importDecl
 
 classDecl
     : CLASS name=ID
-        (EXTENDS ID )?
+        ('extends' superName=ID)?
         '{'
         varDecl*
         methodDecl*
