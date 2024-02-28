@@ -16,7 +16,6 @@ VOLATILE: 'volatile' ;
 IMPORT : 'import' ;
 EXTENDS : 'extends' ;
 BOOLEAN : 'boolean' ;
-RETURN : 'return' ;
 
 CLASS : 'class' ;
 
@@ -37,7 +36,7 @@ program
     ;
 
 importDecl
-    : IMPORT ID('.'ID)*';'
+    : IMPORT name=ID('.'ID)* ';'
     ;
 
 classDecl
@@ -80,7 +79,7 @@ stmt
     | WHILE '(' expr ')' stmt #WhileStmt
     | expr ';' #DefaultStmt
     | expr '=' expr ';' #AssignStmt
-    | RETURN expr ';' #ReturnStmt
+    | 'return' expr ';' #ReturnStmt
     ;
 
 args
