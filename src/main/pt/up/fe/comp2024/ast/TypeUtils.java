@@ -15,7 +15,14 @@ public class TypeUtils {
     }
 
     public static Type getParamType(JmmNode paramExpr) {
-        return new Type(paramExpr.getChild(0).get("id"), false);
+        String type;
+        try{
+            type = paramExpr.getChild(0).get("id");
+        }
+        catch(Exception e){
+            type = paramExpr.get("name");
+        }
+        return new Type(type, false);
     }
 
     /**

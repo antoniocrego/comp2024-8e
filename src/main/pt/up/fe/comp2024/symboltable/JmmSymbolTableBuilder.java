@@ -7,10 +7,7 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
 import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
@@ -29,8 +26,9 @@ public class JmmSymbolTableBuilder {
         var returnTypes = buildReturnTypes(classDecl);
         var params = buildParams(classDecl);
         var locals = buildLocals(classDecl);
+        var fields = buildFields(classDecl);
 
-        return new JmmSymbolTable(className, methods, returnTypes, params, locals);
+        return new JmmSymbolTable(className, methods, returnTypes, params, locals, fields);
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
@@ -48,6 +46,14 @@ public class JmmSymbolTableBuilder {
         Map<String, List<Symbol>> map = new HashMap<>();
 
         classDecl.getChildren(METHOD_DECL).forEach(method -> map.put(method.get("name"), method.getChildren(PARAM).stream().map(param-> new Symbol(TypeUtils.getParamType(param), param.get("name"))).toList()));
+
+        return map;
+    }
+
+    private static List<Symbol> buildFields(JmmNode classDecl) {
+        List<Symbol> map = new ArrayList<>();
+
+        classDecl.getChildren(VAR_DECL).forEach(var -> map.add(new Symbol(TypeUtils.getParamType(var),var.get("name"))));
 
         return map;
     }
