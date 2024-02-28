@@ -3,6 +3,8 @@ package pt.up.fe.comp2024.ast;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import static pt.up.fe.comp2024.ast.Kind.TYPE;
+
 
 public class TypeUtils {
 
@@ -13,7 +15,7 @@ public class TypeUtils {
     }
 
     public static Type getParamType(JmmNode paramExpr) {
-        return new Type(INT_TYPE_NAME, false);
+        return new Type(paramExpr.getChild(0).get("id"), false);
     }
 
     /**

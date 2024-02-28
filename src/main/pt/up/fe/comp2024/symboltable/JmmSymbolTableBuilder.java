@@ -45,8 +45,6 @@ public class JmmSymbolTableBuilder {
     }
 
     private static Map<String, List<Symbol>> buildParams(JmmNode classDecl) {
-        // TODO: Simple implementation that needs to be expanded
-
         Map<String, List<Symbol>> map = new HashMap<>();
 
         classDecl.getChildren(METHOD_DECL).forEach(method -> map.put(method.get("name"), method.getChildren(PARAM).stream().map(param-> new Symbol(TypeUtils.getParamType(param), param.get("name"))).toList()));
