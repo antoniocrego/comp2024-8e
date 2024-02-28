@@ -3,6 +3,8 @@ package pt.up.fe.comp2024.ast;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import static pt.up.fe.comp2024.ast.Kind.TYPE;
+
 
 public class TypeUtils {
 
@@ -10,6 +12,17 @@ public class TypeUtils {
 
     public static String getIntTypeName() {
         return INT_TYPE_NAME;
+    }
+
+    public static Type getParamType(JmmNode paramExpr) {
+        String type;
+        try{
+            type = paramExpr.getChild(0).get("id");
+        }
+        catch(Exception e){
+            type = paramExpr.get("name");
+        }
+        return new Type(type, false);
     }
 
     /**
@@ -51,7 +64,6 @@ public class TypeUtils {
         // TODO: Simple implementation that needs to be expanded
         return new Type(INT_TYPE_NAME, false);
     }
-
 
     /**
      * @param sourceType
