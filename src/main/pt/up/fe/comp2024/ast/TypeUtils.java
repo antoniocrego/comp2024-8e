@@ -15,14 +15,17 @@ public class TypeUtils {
     }
 
     public static Type getParamType(JmmNode paramExpr) {
-        String type;
-        try{
-            type = paramExpr.getChild(0).get("id");
+        JmmNode type = paramExpr.getChildren(TYPE).get(0);
+        if(type.getKind().equals("ArrayType")){
+            JmmNode primite_type = type.getJmmChild(0);
+            return new Type(primite_type.get("id"), true);
         }
-        catch(Exception e){
-            type = paramExpr.get("name");
+        else if(type.getKind().equals("VarargType")){
+            //TODO:
+            return new Type(TypeUtils.getIntTypeName(), false);
+        }else{
+            return new Type(type.get("id"), false);
         }
-        return new Type(type, false);
     }
 
     /**

@@ -48,19 +48,7 @@ public class JmmSymbolTableBuilder {
 
         for (JmmNode method : classDecl.getChildren(METHOD_DECL)){
             String method_name = method.get("name");
-            JmmNode type = method.getChildren(TYPE).get(0);
-            if(type.getKind().equals("ArrayType")){
-                // WARNING: This will not work for arrays of arrays
-                // TODO: Recursive types here or use JmmVisitor?
-                JmmNode primite_type = type.getJmmChild(0);
-                map.put(method_name, new Type(primite_type.get("id"), true));
-            }
-            else if(type.getKind().equals("VarargType")){
-                //TODO:
-                map.put(method_name, new Type(TypeUtils.getIntTypeName(), false));
-            }else{
-                map.put(method_name, new Type(type.get("id"), false));
-            }
+            map.put(method_name, TypeUtils.getParamType(method));
         }
 
         return map;
