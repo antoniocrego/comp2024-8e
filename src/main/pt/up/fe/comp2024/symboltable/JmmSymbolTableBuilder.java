@@ -12,6 +12,7 @@ import java.util.*;
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
 import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
 import static pt.up.fe.comp2024.ast.Kind.PARAM;
+import static pt.up.fe.comp2024.ast.Kind.TYPE;
 
 public class JmmSymbolTableBuilder {
 
@@ -43,12 +44,24 @@ public class JmmSymbolTableBuilder {
 
     }
    private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
-        // TODO: Simple implementation that needs to be expanded
-
         Map<String, Type> map = new HashMap<>();
 
-        classDecl.getChildren(METHOD_DECL).stream()
-                .forEach(method -> map.put(method.get("name"), new Type(TypeUtils.getIntTypeName(), false)));
+        for (JmmNode method : classDecl.getChildren(METHOD_DECL)){
+            String method_name = method.get("name");
+            JmmNode type = method.getChildren(TYPE).get(0);
+            if(type.getKind().equals("ArrayType")){
+                // WARNING: This will not work for arrays of arrays
+                // TODO: Recursive types here or use JmmVisitor?
+                JmmNode primite_type = type.getJmmChild(0);
+                map.put(method_name, new Type(primite_type.get("id"), true));
+            }
+            else if(type.getKind().equals("VarargType")){
+                //TODO:
+                map.put(method_name, new Type(TypeUtils.getIntTypeName(), false));
+            }else{
+                map.put(method_name, new Type(type.get("id"), false));
+            }
+        }
 
         return map;
     }
