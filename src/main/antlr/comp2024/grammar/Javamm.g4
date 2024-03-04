@@ -30,8 +30,8 @@ INTEGER : [0-9]+ ;
 ID : [_$a-zA-Z][_$a-zA-Z0-9]* ;
 
 WS : [ \t\n\r\f]+ -> skip ;
-COMMENT : '//' ~[\r\n]* -> skip ;
-MULTILINECOMMENT : '/*' .? '*/' -> skip ;
+SINGLE_LINE_COMMENT : '//' (~[\r\n])* -> skip;
+MULTI_LINE_COMMENT : '/*' *.? '*/' -> skip ;
 
 program
     : (importDecl)* classDecl EOF
