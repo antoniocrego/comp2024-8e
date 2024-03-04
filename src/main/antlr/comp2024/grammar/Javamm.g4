@@ -26,7 +26,7 @@ IF : 'if' ;
 ELSE : 'else' ;
 WHILE : 'while' ;
 
-INTEGER : [0-9]+ ;
+INTEGER : [0-9] | [1-9][0-9]+ ;
 ID : [_$a-zA-Z][_$a-zA-Z0-9]* ;
 
 WS : [ \t\n\r\f]+ -> skip ;
