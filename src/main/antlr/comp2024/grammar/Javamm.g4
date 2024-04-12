@@ -26,6 +26,9 @@ IF : 'if' ;
 ELSE : 'else' ;
 WHILE : 'while' ;
 
+TRUE : 'true';
+FALSE : 'false';
+
 INTEGER : '0'|([1-9][0-9]*) ;
 ID : [_$a-zA-Z][_$a-zA-Z0-9]* ;
 
@@ -84,22 +87,24 @@ stmt
     ;
 
 args
-    : expr ( ',' expr )*
+    : expr ( ',' expr )* #FuncArgs
     ;
 
 expr
     : '(' expr ')' #ParenExpr
     | op='!' expr #UnaryOp
     | expr '.' LENGTH # LengthExpr
-    | expr '.' ID '(' args? ')' #FuncCall
+    | expr '.' id=ID '(' args? ')' #FuncCall
     | expr '[' index=expr ']' #ArrayAccess
     | 'new' type '[' size=expr ']' # NewArray
-    | 'new' ID '(' ')' # NewClass //this doesn't allow passing parameters to the constructor
+    | 'new' id=ID '(' ')' # NewClass //this doesn't allow passing parameters to the constructor
     | '[' args ']' # ArrayInit
-    | expr op=('*' | '/') expr #BinaryOp
-    | expr op=('+' | '-') expr #BinaryOp
-    | expr op=( '<' | '<=' | '>' | '>=' ) expr #BinaryOp
-    | expr op='&&' expr #BinaryOp
+    | expr op=('*' | '/') expr #BinaryExpr
+    | expr op=('+' | '-') expr #BinaryExpr
+    | expr op=( '<' | '<=' | '>' | '>=' ) expr #ComparisonExpr
+    | expr op='&&' expr #BooleanExpr
     | value=INTEGER #IntegerLiteral
+    | value=TRUE #Boolean
+    | value=FALSE #Boolean
     | name=ID #VarRefExpr
     ;
