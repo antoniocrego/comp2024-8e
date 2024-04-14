@@ -20,6 +20,8 @@ BOOLEAN : 'boolean' ;
 CLASS : 'class' ;
 
 PUBLIC : 'public' ;
+PRIVATE :  'private';
+PROTECTED : 'protected';
 
 LENGTH : 'length' ;
 IF : 'if' ;
@@ -53,8 +55,8 @@ classDecl
         '}'
     ;
 
-varDecl
-    : type name=ID ';'
+varDecl locals[boolean isPublic=false]
+    : (PUBLIC {$isPublic=true;})? type name=ID ';'
     ;
 
 type
@@ -70,8 +72,8 @@ param
     ;
 
 methodDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})?
-        ACCESS_TYPE?
+    : (PUBLIC {$isPublic=true;} | PRIVATE | PROTECTED)?
+        (accessType=ACCESS_TYPE)?
         type name=ID
         '(' (param (','param)*)? ')'
         '{' varDecl* stmt* '}'

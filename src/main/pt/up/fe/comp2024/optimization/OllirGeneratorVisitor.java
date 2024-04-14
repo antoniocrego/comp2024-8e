@@ -4,7 +4,6 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
-import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
@@ -155,7 +154,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             code.append("public ");
         }
 
-        //TODO (thePeras): Check if it is static
+        // Access Type
+        var accessType = node.getOptional("accessType");
+        if(accessType.isPresent()){
+            code.append(accessType);
+            code.append(SPACE);
+        }
 
         // method na,me
         var name = node.get("name");
@@ -204,12 +208,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder(".field ");
 
-        // TODO (thePeras): Class fields should be public by default - Change grammar?
+        // TODO (thePeras): What is the default visibility?
         boolean isPublic = NodeUtils.getBooleanAttribute(node, "isPublic", "false");
 
-        if (!isPublic) { //TODO (thePeras): Change this
-            code.append("public ");
-        }
+        String visibility = isPublic ? "public " : "private ";
+        code.append(visibility);
 
         // name
         var name = node.get("name");
