@@ -96,7 +96,7 @@ public class JmmSymbolTableBuilder {
         var intType = new Type(TypeUtils.getIntTypeName(), false);
 
         return methodDecl.getChildren(VAR_DECL).stream()
-                .map(varDecl -> new Symbol(intType, varDecl.get("name")))
+                .map(varDecl -> new Symbol(TypeUtils.getParamType(varDecl), varDecl.get("name")))
                 .toList();
     }
 
