@@ -18,7 +18,21 @@ public enum Kind {
     RETURN_STMT,
     BINARY_EXPR,
     INTEGER_LITERAL,
-    VAR_REF_EXPR;
+    VAR_REF_EXPR,
+    BOOLEAN,
+    ARRAY_INIT,
+    NEW_ARRAY,
+    NEW_CLASS,
+    FUNC_CALL,
+    ARRAY_TYPE,
+    ARRAY_ACCESS,
+    IF_STMT,
+    WHILE_STMT,
+    UNARY_OP,
+    COMPARISON_EXPR,
+    BOOLEAN_EXPR,
+    FUNC_ARGS,
+    VARARG_TYPE;
 
 
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
