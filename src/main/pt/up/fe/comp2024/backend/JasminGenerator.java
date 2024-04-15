@@ -119,9 +119,9 @@ public class JasminGenerator {
 
         var methodName = method.getMethodName();
 
-        var returnType = getParamType(method.getReturnType());
+        var returnType = getType(method.getReturnType());
         var paramTypes = method.getParams().stream()
-                .map(param -> getParamType(param.getType()))
+                .map(param -> getType(param.getType()))
                 .collect(Collectors.joining());
 
         // TODO: Hardcoded param types and return type, needs to be expanded
@@ -174,7 +174,12 @@ public class JasminGenerator {
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
         // TODO: Hardcoded for int type, needs to be expanded
-        code.append("istore ").append(reg).append(NL);
+        // DONE ?
+        code.append(switch (assign.getTypeOfAssign().getTypeOfElement()) {
+            case INT32, BOOLEAN -> "i";
+            case VOID -> "";
+            default -> "a";
+        }).append("istore ").append(reg).append(NL);
 
         return code.toString();
     }
@@ -216,14 +221,19 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         // TODO: Hardcoded to int return type, needs to be expanded
-
+        // DONE ?
         code.append(generators.apply(returnInst.getOperand()));
-        code.append("ireturn").append(NL);
+        code.append(switch (returnInst.getElementType()) {
+            case INT32, BOOLEAN -> "i";
+            case VOID -> "";
+            default -> "a";
+        }).append("return").append(NL);
+
 
         return code.toString();
     }
 
-    private String getParamType(Type type) {
+    private String getType(Type type) {
         return switch (type.getTypeOfElement()) {
             case INT32 -> "I";
             case BOOLEAN -> "Z";
