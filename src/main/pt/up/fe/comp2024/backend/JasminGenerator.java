@@ -74,7 +74,8 @@ public class JasminGenerator {
         code.append(".class ").append(className).append(NL).append(NL);
 
         // TODO: Hardcoded to Object, needs to be expanded
-        code.append(".super java/lang/Object").append(NL);
+        // DONE ?
+        code.append(".super ").append(classUnit.getSuperClass()).append(NL);
 
         // generate a single constructor method
         var defaultConstructor = """
@@ -118,8 +119,22 @@ public class JasminGenerator {
 
         var methodName = method.getMethodName();
 
+        var returnType = getParamType(method.getReturnType());
+        var paramTypes = method.getParams().stream()
+                .map(param -> getParamType(param.getType()))
+                .collect(Collectors.joining());
+
         // TODO: Hardcoded param types and return type, needs to be expanded
-        code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
+        // DONE ?
+        code
+                .append("\n.method ")
+                .append(modifier)
+                .append(methodName)
+                .append("(")
+                .append(paramTypes)
+                .append(")")
+                .append(returnType)
+                .append(NL);
 
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
@@ -206,6 +221,25 @@ public class JasminGenerator {
         code.append("ireturn").append(NL);
 
         return code.toString();
+    }
+
+    private String getParamType(Type type) {
+        return switch (type.getTypeOfElement()) {
+            case INT32 -> "I";
+            case BOOLEAN -> "Z";
+            case ARRAYREF -> {
+                ArrayType arrayType = (ArrayType) type;
+                yield "[" + arrayType.getElementType();
+            }
+            case OBJECTREF -> "Ljava/lang/Object";
+            case CLASS -> {
+                ClassType classType = (ClassType) type;
+                yield "L" + classType.getTypeOfElement();
+            }
+            case THIS -> null;
+            case STRING -> "Ljava/lang/String;";
+            case VOID -> "V";
+        };
     }
 
 }
