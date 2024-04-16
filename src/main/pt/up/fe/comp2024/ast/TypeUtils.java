@@ -1,8 +1,11 @@
 package pt.up.fe.comp2024.ast;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+
+import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
 import static pt.up.fe.comp2024.ast.Kind.TYPE;
 
 
@@ -17,8 +20,8 @@ public class TypeUtils {
     public static Type getParamType(JmmNode paramExpr) {
         JmmNode type = paramExpr.getChildren(TYPE).get(0);
         if(type.getKind().equals("ArrayType")){
-            JmmNode primite_type = type.getJmmChild(0);
-            return new Type(primite_type.get("id"), true);
+            JmmNode primitive_type = type.getJmmChild(0);
+            return new Type(primitive_type.get("id"), true);
         }
         else if(type.getKind().equals("VarargType")){
             //TODO:
@@ -40,15 +43,14 @@ public class TypeUtils {
 
         var kind = Kind.fromString(expr.getKind());
 
-        Type type = switch (kind) {
+        return switch (kind) {
+            case BINARY_EXPR -> getBinExprType(expr);
             case VAR_REF_EXPR -> getVarExprType(expr, table);
-            case INTEGER_LITERAL,BINARY_EXPR -> new Type(INT_TYPE_NAME, false);
+            case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN,BOOLEAN_EXPR,COMPARISON_EXPR,UNARY_OP -> new Type("boolean",false);
             case ARRAY_TYPE, NEW_ARRAY -> new Type(expr.getChild(0).get("id"), true);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
-
-        return type;
     }
 
     private static Type getBinExprType(JmmNode binaryExpr) {
@@ -65,8 +67,33 @@ public class TypeUtils {
 
 
     private static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
-        // TODO: Simple implementation that needs to be expanded
-        return new Type(INT_TYPE_NAME, false);
+        var method = varRefExpr.getAncestor(METHOD_DECL);
+        if(method.isEmpty()) return null;
+
+        String methodName = method.get().get("name");
+
+        // Search in Method locals
+        for (Symbol symbol : table.getLocalVariables(methodName)){
+            if(symbol.getName().equals(varRefExpr.get("name"))){
+                return symbol.getType();
+            }
+        }
+
+        // Search in Method params
+        for (Symbol symbol : table.getParameters(methodName)){
+            if(symbol.getName().equals(varRefExpr.get("name"))){
+                return symbol.getType();
+            }
+        }
+
+        // Search in Class fields
+        for (Symbol symbol : table.getFields()){
+            if(symbol.getName().equals(varRefExpr.get("name"))){
+                return symbol.getType();
+            }
+        }
+
+        return null;
     }
 
     /**

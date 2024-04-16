@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -28,10 +29,45 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
+        addVisit(FUNC_CALL, this::visitFuncCall);
+        addVisit(NEW_CLASS, this::visitNewClass);
 
         setDefaultVisit(this::defaultVisit);
     }
 
+    private OllirExprResult visitNewClass(JmmNode node, Void unused){
+
+        StringBuilder computation = new StringBuilder();
+
+        String tempToUse = OptUtils.getTemp();
+        String ollirIntType = OptUtils.toOllirType(node);
+        String className = node.get("id");
+
+        computation.append(tempToUse);
+        computation.append(ollirIntType);
+        computation.append(SPACE);
+        computation.append(ASSIGN);
+        computation.append(ollirIntType);
+        computation.append(SPACE);
+        computation.append("new(");
+        computation.append(className);
+        computation.append(")");
+        computation.append(ollirIntType);
+        computation.append(END_STMT);
+
+        computation.append("invokespecial(");
+        computation.append(tempToUse);
+        computation.append(ollirIntType);
+
+        //TODO (thePeras): parse all the arguments
+
+        computation.append(", \"\").V ");
+        computation.append(END_STMT);
+
+        String code = tempToUse + ollirIntType;
+
+        return new OllirExprResult(code, computation);
+    }
 
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
         var intType = new Type(TypeUtils.getIntTypeName(), false);
@@ -70,14 +106,117 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
-
         var id = node.get("name");
         Type type = TypeUtils.getExprType(node, table);
+        if(type == null) return new OllirExprResult("");
+
         String ollirType = OptUtils.toOllirType(type);
 
         String code = id + ollirType;
 
         return new OllirExprResult(code);
+    }
+
+    private OllirExprResult visitFuncCall(JmmNode node, Void unused){
+        StringBuilder code = new StringBuilder();
+
+        var objectName = node.getChild(0).get("name");
+        var methodCalledName = node.get("id");
+
+        String invoke = "invokevirtual";
+
+        var methodNode = node.getAncestor(METHOD_DECL);
+        if(methodNode.isEmpty()) return new OllirExprResult("");
+
+        var methodName = methodNode.get().get("name");
+        boolean isStatic = true;
+
+        // Check in method locals
+        for(Symbol local : table.getLocalVariables(methodName)){
+            if(local.getName().equals(objectName)){
+
+                isStatic = false;
+                break;
+            }
+        }
+
+        // Check in class methods
+        for(String method : table.getMethods()){
+            if(method.equals(methodCalledName)){
+
+                //If the method is calling itself only add "this" else "this.ClassName"
+                if(!method.equals(methodName)){
+                    objectName = objectName + "." + table.getClassName();
+                }
+
+                isStatic = false;
+                break;
+            }
+        }
+
+        // Check in class fields
+        for(Symbol field : table.getFields()){
+            if(field.getName().equals(objectName)){
+
+                isStatic = false;
+                break;
+            }
+        }
+
+
+
+        if(isStatic){
+            invoke = "invokestatic";
+        }
+
+        code.append(invoke);
+        code.append("(");
+
+        code.append(objectName);
+        code.append(", ");
+
+        code.append('"');
+        code.append(methodCalledName);
+        code.append('"');
+
+        // Parsing parameters
+        if(node.getChildren().size() > 1){
+            for(JmmNode argNode : node.getChild(1).getChildren()){
+                code.append(", ");
+                var id = argNode.get("name");
+                Type type = TypeUtils.getExprType(argNode, table);
+                String ollirType = OptUtils.toOllirType(type);
+                code.append(id);
+                code.append(ollirType);
+            }
+        }
+
+        code.append(")");
+        var assignStm = node.getAncestor(ASSIGN_STMT);
+        if(assignStm.isPresent()){
+            Type thisType = TypeUtils.getExprType(assignStm.get().getJmmChild(0), table);
+            String typeString = OptUtils.toOllirType(thisType);
+            code.append(typeString);
+
+            StringBuilder computation = new StringBuilder();
+            String tempToUse = OptUtils.getTemp();
+            computation.append(tempToUse);
+            computation.append(typeString);
+            computation.append(SPACE);
+            computation.append(ASSIGN);
+            computation.append(typeString);
+            computation.append(SPACE);
+            computation.append(code);
+            computation.append(END_STMT);
+
+            var newCode = tempToUse + typeString;
+            return new OllirExprResult(newCode, computation);
+        }else{
+            code.append(".V");
+            code.append(END_STMT);
+        }
+
+        return new OllirExprResult(code.toString());
     }
 
     /**

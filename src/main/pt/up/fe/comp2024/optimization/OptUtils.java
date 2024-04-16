@@ -32,9 +32,15 @@ public class OptUtils {
 
     public static String toOllirType(JmmNode typeNode) {
 
-        TYPE.checkOrThrow(typeNode);
+        //TYPE.checkOrThrow(typeNode);
+        //TODO (thePeras): Check the different types of the grammar
 
-        String typeName = typeNode.get("name");
+        if(typeNode.getKind().equals("ArrayType")){
+            return ".array" + toOllirType(typeNode.getChild(0));
+        }
+        if(typeNode.getKind().equals("CustomType")) return "." + typeNode.get("id");
+
+        String typeName = typeNode.get("id");
 
         return toOllirType(typeName);
     }
@@ -45,12 +51,13 @@ public class OptUtils {
 
     private static String toOllirType(String typeName) {
 
-        String type = "." + switch (typeName) {
+        return "." + switch (typeName) {
             case "int" -> "i32";
-            default -> throw new NotImplementedException(typeName);
+            case "boolean" -> "bool";
+            case "void" -> "V";
+            default -> typeName; // For class names
+            //default -> throw new NotImplementedException(typeName);
         };
-
-        return type;
     }
 
 
