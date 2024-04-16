@@ -46,6 +46,7 @@ public class MethodCheck extends AnalysisVisitor {
             var methodName = funcCall.get("id");
             Type methodCallerType = new Type("", false);
             if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+            else if (table.getImports().contains(methodVariable)) return null;
             else {
                 var megaTable = new ArrayList<>(table.getFields());
                 megaTable.addAll(table.getParameters(currentMethod));

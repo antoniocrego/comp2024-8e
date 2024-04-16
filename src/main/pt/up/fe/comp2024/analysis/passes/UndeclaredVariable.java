@@ -36,6 +36,8 @@ public class UndeclaredVariable extends AnalysisVisitor {
         var varRefName = varRefExpr.get("name");
         if (varRefName.equals("this")) return null;
 
+        if (table.getImports().contains(varRefName)) return null;
+
         // Var is a field, return
         if (table.getFields().stream()
                 .anyMatch(param -> param.getName().equals(varRefName))) {
