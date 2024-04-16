@@ -55,8 +55,8 @@ classDecl
         '}'
     ;
 
-varDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})? type name=ID ';'
+varDecl locals[boolean isPrivate=false]
+    : (PRIVATE {$isPrivate=true;})? type name=ID ';'
     ;
 
 type

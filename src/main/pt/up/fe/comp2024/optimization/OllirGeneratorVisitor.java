@@ -55,29 +55,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitDefaultStmt(JmmNode node, Void unused){
         var stmt = node.getChild(0);
 
-        // method only defined for FUNC_CALL
+        // method only defined for FUNC_CALL for now
         if(!stmt.getKind().equals(FUNC_CALL.getNodeName())) return "";
 
-        StringBuilder code = new StringBuilder();
-        code.append("invokestatic(");
+        var funcCall = exprVisitor.visit(stmt);
 
-        var objectName = stmt.getChild(0).get("name");
-        code.append(objectName);
-        //TODO (thePeras) : name of the called method. Change grammar...
+        //TODO (thePeras) : getComputation for examples with temps?
 
-        //TODO (thePeras): params
-        ArrayList<String> arguments = new ArrayList<>();
-        for(JmmNode argNode : stmt.getChild(1).getChildren()){
-
-        }
-        var argsCode = String.join(", ", arguments);
-        code.append(argsCode);
-        code.append(")");
-        code.append(END_STMT);
-
-        //TODO (thePeras): return type, How I know the return type of io.println()?
-
-        return code.toString();
+        return funcCall.getCode();
     }
     private String visitAssignStmt(JmmNode node, Void unused) {
 
@@ -157,7 +142,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         // Access Type
         var accessType = node.getOptional("accessType");
         if(accessType.isPresent()){
-            code.append(accessType);
+            code.append(accessType.get());
             code.append(SPACE);
         }
 
@@ -209,9 +194,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder(".field ");
 
         // TODO (thePeras): What is the default visibility?
-        boolean isPublic = NodeUtils.getBooleanAttribute(node, "isPublic", "false");
+        boolean isPrivate = NodeUtils.getBooleanAttribute(node, "isPrivate", "false");
 
-        String visibility = isPublic ? "public " : "private ";
+        String visibility = isPrivate ? "private " : "public ";
         code.append(visibility);
 
         // name
@@ -240,6 +225,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         if(superName.isPresent()){
             code.append(" extends ");
             code.append(superName.get());
+        }else{
+            code.append(" extends Object ");
         }
 
         code.append(L_BRACKET);
