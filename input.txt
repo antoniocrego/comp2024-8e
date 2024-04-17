@@ -1,9 +1,12 @@
 import io;
 class Fac {
-	public int compFac(int num){
-  	}
+    public int booleanTest(){
+        if (!true && 2){
 
-	public static void main(String[] args){
- 	      io.println(new Fac().compFac(10));
-	}
+        }
+        else{
+
+        }
+        return 0;
+    }
 }

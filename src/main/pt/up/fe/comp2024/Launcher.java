@@ -38,18 +38,19 @@ public class Launcher {
         // Semantic Analysis stage
         JmmAnalysisImpl sema = new JmmAnalysisImpl();
         JmmSemanticsResult semanticsResult = sema.semanticAnalysis(parserResult);
+        System.out.println(semanticsResult.getReports());
         //TestUtils.noErrors(semanticsResult.getReports());
 
         //Print AST resulting from semantic analysis
         System.out.println(semanticsResult.getRootNode().toTree());
 
         // Optimization stage
-        JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
-        OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
+        //JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
+        //OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
         //TestUtils.noErrors(ollirResult.getReports());
 
         // Print OLLIR code
-        System.out.println(ollirResult.getOllirCode());
+        //System.out.println(ollirResult.getOllirCode());
 
         // Code generation stage
         //JasminBackendImpl jasminGen = new JasminBackendImpl();
