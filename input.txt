@@ -1,16 +1,17 @@
-class MyClass {
-    public static void main(String[] args) {
+import io;
 
-        int a;
-        int b;
+class Simple {
 
-        a = 1;
-        b = 2;
+    int field_1;
 
-        io.println(a+b); // 3
-
-
-        io.println(1+2*3); // 7
-        io.println(1+2*3+5); // 12
+    public int setI(int newI) {
+        field_1 = newI;
+        return 0;
     }
+
+    public int getI() {
+        return field_1;
+    }
+
 }
+
