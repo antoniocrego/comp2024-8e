@@ -50,9 +50,9 @@ public class IndexCheck extends AnalysisVisitor {
                 );
                 return null;
             }
-            var megaTable = new ArrayList<>(table.getFields());
+            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
             megaTable.addAll(table.getParameters(currentMethod));
-            megaTable.addAll(table.getLocalVariables(currentMethod));
+            megaTable.addAll(table.getFields());
             var arrayName = arrayAccess.getChild(0).get("name");
             for (var element : megaTable){
                 if (element.getName().equals(arrayName)){
@@ -71,10 +71,13 @@ public class IndexCheck extends AnalysisVisitor {
                     break;
                 }
             }
-            var arrayIndex = arrayAccess.getChild(1);
-            Boolean isInt = arrayAccess.getChild(1).getKind().equals(Kind.INTEGER_LITERAL.toString()) || arrayAccess.getChild(1).getKind().equals(Kind.BINARY_EXPR.toString());
+            JmmNode arrayIndex = arrayAccess.getChild(1);
+            while (arrayIndex.getKind().equals(Kind.PAREN_EXPR.toString())){
+                arrayIndex = arrayIndex.getChild(0);
+            }
+            boolean isInt = arrayIndex.getKind().equals(Kind.INTEGER_LITERAL.toString()) || arrayIndex.getKind().equals(Kind.BINARY_EXPR.toString());
             if (arrayIndex.getKind().equals(Kind.VAR_REF_EXPR.toString())){
-                var varRefName = arrayAccess.getChild(1).get("name");
+                var varRefName = arrayIndex.get("name");
 
                 for (var element : megaTable){
                     if (element.getName().equals(varRefName)){
@@ -127,7 +130,7 @@ public class IndexCheck extends AnalysisVisitor {
             }
             if (!isInt){
                 var message = "Indexing array '%s' with expression resulting type '%s'";
-                message = String.format(message, arrayAccess.getChild(0).get("name"), arrayAccess.getChild(1).getKind());
+                message = String.format(message, arrayAccess.getChild(0).get("name"), arrayIndex.getKind());
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(arrayAccess),

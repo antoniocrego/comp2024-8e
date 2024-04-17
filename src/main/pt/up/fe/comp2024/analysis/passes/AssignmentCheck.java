@@ -48,9 +48,9 @@ public class AssignmentCheck extends AnalysisVisitor {
                 return null;
             }
 
-            var megaTable = new ArrayList<>(table.getFields());
+            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
             megaTable.addAll(table.getParameters(currentMethod));
-            megaTable.addAll(table.getLocalVariables(currentMethod));
+            megaTable.addAll(table.getFields());
 
             String elementType = "";
             boolean isArray = false;
@@ -65,9 +65,13 @@ public class AssignmentCheck extends AnalysisVisitor {
                 }
             }
             if (elementType.isEmpty()) return null;
-            if (assign.getChild(1).getKind().equals(Kind.FUNC_CALL.toString())) {
-                var methodVariable = assign.getChild(1).getChild(0).get("name");
-                var methodName = assign.getChild(1).get("id");
+            JmmNode assignExpr = assign.getChild(1);
+            while (assignExpr.getKind().equals(Kind.PAREN_EXPR.toString())){
+                assignExpr = assign.getChild(0);
+            }
+            if (assignExpr.getKind().equals(Kind.FUNC_CALL.toString())) {
+                var methodVariable = assignExpr.getChild(0).get("name");
+                var methodName = assignExpr.get("id");
                 Type methodCallerType = new Type("", false);
                 if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
                 else {
@@ -118,10 +122,10 @@ public class AssignmentCheck extends AnalysisVisitor {
                     }
                 }
             }
-            else if (isArray && !assign.getChild(1).getKind().equals(Kind.ARRAY_INIT.toString())) {
-                if (assign.getChild(1).getKind().equals(Kind.NEW_ARRAY.toString())) {
-                    if (!assign.getChild(1).getChild(0).get("id").equals(elementType)) {
-                        var message = String.format("Initialization of array '%s' with array initializer of type '%s'.", varRefName, assign.getChild(1).getChild(0).get("id"));
+            else if (isArray && !assignExpr.getKind().equals(Kind.ARRAY_INIT.toString())) {
+                if (assignExpr.getKind().equals(Kind.NEW_ARRAY.toString())) {
+                    if (!assignExpr.getChild(0).get("id").equals(elementType)) {
+                        var message = String.format("Initialization of array '%s' with array initializer of type '%s'.", varRefName, assignExpr.getChild(0).get("id"));
                         addReport(Report.newError(
                                 Stage.SEMANTIC,
                                 NodeUtils.getLine(assign),
@@ -142,8 +146,8 @@ public class AssignmentCheck extends AnalysisVisitor {
                         null)
                 );
                 return null;
-            } else if (isArray && assign.getChild(1).getKind().equals(Kind.ARRAY_INIT.toString())) {
-                List<JmmNode> arrayInitArgs = assign.getChild(1).getChild(0).getChildren();
+            } else if (isArray && assignExpr.getKind().equals(Kind.ARRAY_INIT.toString())) {
+                List<JmmNode> arrayInitArgs = assignExpr.getChild(0).getChildren();
                 List<JmmNode> toBeExplored = new ArrayList<>();
                 while (!arrayInitArgs.isEmpty()) {
                     JmmNode top = arrayInitArgs.remove(0);
@@ -217,8 +221,8 @@ public class AssignmentCheck extends AnalysisVisitor {
                         }
                     }
                 }
-            } else if (assign.getChild(1).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-                var secondName = assign.getChild(1).get("name");
+            } else if (assignExpr.getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+                var secondName = assignExpr.get("name");
                 for (var element : megaTable) {
                     if (element.getName().equals(secondName)) {
                         if (!element.getType().getName().equals(elementType)) {
@@ -238,8 +242,8 @@ public class AssignmentCheck extends AnalysisVisitor {
                     }
                 }
             }
-            else if (assign.getChild(1).getKind().equals(Kind.NEW_CLASS.toString()) && !assign.getChild(1).get("id").equals(elementType) && !(elementType.equals(table.getSuper()) && assign.getChild(1).get("id").equals(table.getClassName())) && (!new HashSet<>(table.getImports()).containsAll(Arrays.asList(elementType, assign.getChild(1).get("id"))))) {
-                var message = String.format("Assignment of type '%s' to variable '%s' of type '%s'.", assign.getChild(1).get("id"), varRefName, elementType);
+            else if (assignExpr.getKind().equals(Kind.NEW_CLASS.toString()) && !assignExpr.get("id").equals(elementType) && !(elementType.equals(table.getSuper()) && assignExpr.get("id").equals(table.getClassName())) && (!new HashSet<>(table.getImports()).containsAll(Arrays.asList(elementType, assignExpr.get("id"))))) {
+                var message = String.format("Assignment of type '%s' to variable '%s' of type '%s'.", assignExpr.get("id"), varRefName, elementType);
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(assign),
@@ -249,8 +253,8 @@ public class AssignmentCheck extends AnalysisVisitor {
                 );
                 return null;
             }
-            else if (elementType.equals("int") && !isArray && !(assign.getChild(1).getKind().equals(Kind.INTEGER_LITERAL.toString()) || assign.getChild(1).getKind().equals(Kind.BINARY_EXPR.toString()))) {
-                var message = String.format("Assignment of type '%s' to variable '%s' of type int.", assign.getChild(1).getKind(), varRefName);
+            else if (elementType.equals("int") && !isArray && !(assignExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || assignExpr.getKind().equals(Kind.BINARY_EXPR.toString()))) {
+                var message = String.format("Assignment of type '%s' to variable '%s' of type int.", assignExpr.getKind(), varRefName);
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(assign),
@@ -259,8 +263,8 @@ public class AssignmentCheck extends AnalysisVisitor {
                         null)
                 );
                 return null;
-            } else if (elementType.equals("boolean") && !isArray && !(assign.getChild(1).getKind().equals(Kind.BOOLEAN.toString()))) {
-                var message = String.format("Assignment of type '%s' to variable '%s' of type bool.", assign.getChild(1).getKind(), varRefName);
+            } else if (elementType.equals("boolean") && !isArray && !(assignExpr.getKind().equals(Kind.BOOLEAN.toString()))) {
+                var message = String.format("Assignment of type '%s' to variable '%s' of type bool.", assignExpr.getKind(), varRefName);
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(assign),

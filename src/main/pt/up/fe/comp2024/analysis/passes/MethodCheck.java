@@ -48,9 +48,9 @@ public class MethodCheck extends AnalysisVisitor {
             if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
             else if (table.getImports().contains(methodVariable)) return null;
             else {
-                var megaTable = new ArrayList<>(table.getFields());
+                var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
                 megaTable.addAll(table.getParameters(currentMethod));
-                megaTable.addAll(table.getLocalVariables(currentMethod));
+                megaTable.addAll(table.getFields());
 
                 for (var element : megaTable){
                     if (element.getName().equals(methodVariable)){
