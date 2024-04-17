@@ -1,9 +1,14 @@
 import io;
-class Fac {
-	public int compFac(int num){
-  	}
+import Quicksort;
 
-	public static void main(String[] args){
- 	      io.println(new Fac().compFac(10));
-	}
+class CompileBasic{
+
+    public int method1() {
+        int a;
+        a = 1 + 1 - 2;
+
+        return a;
+    }
 }
+
+
