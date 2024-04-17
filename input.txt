@@ -1,8 +1,4 @@
-import io;
-
 class MyClass {
-
-
     public static void main(String[] args) {
 
         int a;
@@ -16,9 +12,5 @@ class MyClass {
 
         io.println(1+2*3); // 7
         io.println(1+2*3+5); // 12
-
-
     }
-
-
 }

@@ -34,7 +34,9 @@ public enum Kind {
     COMPARISON_EXPR,
     BOOLEAN_EXPR,
     FUNC_ARGS,
-    VARARG_TYPE;
+    VARARG_TYPE,
+    PRIMITIVE_TYPE,
+    CUSTOM_TYPE;
 
 
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);

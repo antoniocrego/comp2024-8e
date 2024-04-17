@@ -38,7 +38,7 @@ public class ParamCheck extends AnalysisVisitor {
             List<Symbol> methodParameters;
             methodParameters = table.getParameters(currentMethod);
             for (int i = 0; i<methodParameters.size()-1; i++){
-                if (methodParameters.get(0).getType().getName().equals("int...")){
+                if (methodParameters.get(i).getType().getName().equals("int...")){
                     var message = String.format("Definition of function '%s' with vararg argument not at the end.", currentMethod);
                     addReport(Report.newError(
                             Stage.SEMANTIC,
