@@ -20,18 +20,10 @@ public class ValidDeclarationCheck extends AnalysisVisitor {
 
     @Override
     public void buildVisitor() {
-        addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.VAR_DECL, this::visitVarDecl);
     }
 
-    private Void visitMethodDecl(JmmNode method, SymbolTable table) {
-        currentMethod = method.get("name");
-        return null;
-    }
-
     private Void visitVarDecl(JmmNode varDecl, SymbolTable table) {
-        SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
-
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         if (!(varDecl.getChild(0).getKind().equals(Kind.CUSTOM_TYPE.toString()) || varDecl.getChild(0).getKind().equals(Kind.ARRAY_TYPE.toString()) || varDecl.getChild(0).getKind().equals(Kind.PRIMITIVE_TYPE.toString()))){
             var message = String.format("Invalid type for variable declaration '%s'", varDecl.getChild(0).getKind());
