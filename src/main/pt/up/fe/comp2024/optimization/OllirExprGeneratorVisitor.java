@@ -148,7 +148,9 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
 
-        var objectName = node.getChild(0).get("name");
+        var headNode = node.getChild(0);
+        String objectName = getObjectName(headNode);
+
         var methodCalledName = node.get("id");
 
         String invoke = "invokevirtual";
@@ -217,11 +219,23 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         code.append(")");
 
-        // Check if func call was done in an assign statement
         var assignStm = node.getAncestor(ASSIGN_STMT);
-        if(assignStm.isPresent()){
-            Type thisType = TypeUtils.getExprType(assignStm.get().getJmmChild(0), table);
-            String typeString = OptUtils.toOllirType(thisType);
+        var returnStm = node.getAncestor(RETURN_STMT);
+        JmmNode parent = null;
+        if(assignStm.isPresent()) parent = assignStm.get();
+        if(returnStm.isPresent()) parent = returnStm.get();
+
+        if(parent != null){
+            String typeString = "";
+            if(assignStm.isPresent()) {
+                Type thisType = TypeUtils.getExprType(assignStm.get().getJmmChild(0), table);
+                typeString = OptUtils.toOllirType(thisType);
+            }
+            if(returnStm.isPresent()){
+                Type retType = table.getReturnType(methodName);
+                typeString = OptUtils.toOllirType(retType);
+            }
+
             code.append(typeString);
 
             String tempToUse = OptUtils.getTemp();
@@ -242,6 +256,16 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         code.append(END_STMT);
 
         return new OllirExprResult(code.toString(), computation);
+    }
+
+    String getObjectName(JmmNode node){
+        if(node.getKind().equals(PAREN_EXPR.getNodeName())){
+            return getObjectName(node.getChild(0));
+        }
+
+        if(node.getKind().equals(NEW_CLASS.getNodeName())) return node.get("id");
+
+        return node.get("name");
     }
 
     /**

@@ -71,24 +71,29 @@ public class TypeUtils {
         if(method.isEmpty()) return null;
 
         String methodName = method.get().get("name");
+        String varRefName = varRefExpr.get("name");
+
+        if(varRefName.equals("this")){
+            return new Type(table.getClassName(), false);
+        }
 
         // Search in Method locals
         for (Symbol symbol : table.getLocalVariables(methodName)){
-            if(symbol.getName().equals(varRefExpr.get("name"))){
+            if(symbol.getName().equals(varRefName)){
                 return symbol.getType();
             }
         }
 
         // Search in Method params
         for (Symbol symbol : table.getParameters(methodName)){
-            if(symbol.getName().equals(varRefExpr.get("name"))){
+            if(symbol.getName().equals(varRefName)){
                 return symbol.getType();
             }
         }
 
         // Search in Class fields
         for (Symbol symbol : table.getFields()){
-            if(symbol.getName().equals(varRefExpr.get("name"))){
+            if(symbol.getName().equals(varRefName)){
                 return symbol.getType();
             }
         }
