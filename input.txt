@@ -2,7 +2,7 @@ import io;
 class Fac {
     public int booleanTest(boolean c, int... args, int d){
         boolean a;
-        int a;
+        int c;
         return 0;
     }
 }
