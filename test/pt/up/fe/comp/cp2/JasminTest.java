@@ -15,30 +15,22 @@ public class JasminTest {
 
     @Test
     public void ollirToJasminBasic() {
-        // TODO: To remove
-        assertEquals(true, true);
-        //testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminBasic.ollir");
+        testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminBasic.ollir");
     }
 
     @Test
     public void ollirToJasminArithmetics() {
-        // TODO: To remove
-        assertEquals(true, true);
-        //testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminArithmetics.ollir");
+        testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminArithmetics.ollir");
     }
 
     @Test
     public void ollirToJasminInvoke() {
-        // TODO: To remove
-        assertEquals(true, true);
-        //testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminInvoke.ollir");
+        testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminInvoke.ollir");
     }
 
     @Test
     public void ollirToJasminFields() {
-        // TODO: To remove
-        assertEquals(true, true);
-        //testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminFields.ollir");
+        testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/OllirToJasminFields.ollir");
     }
 
     public static void testOllirToJasmin(String resource, String expectedOutput) {

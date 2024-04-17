@@ -22,9 +22,7 @@ public class AppTest {
 
     @Test
     public void testFull() {
-        // TODO: To remove
-        assertEquals(true, true);
-        //TestUtils.noErrors(TestUtils.backend(getResource("App1.jmm"), Collections.emptyMap()));
+        TestUtils.noErrors(TestUtils.backend(getResource("App1.jmm"), Collections.emptyMap()));
     }
 
 }
