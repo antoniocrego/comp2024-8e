@@ -123,6 +123,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     private OllirExprResult visitFuncCall(JmmNode node, Void unused){
         StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
 
         var objectName = node.getChild(0).get("name");
         var methodCalledName = node.get("id");
@@ -202,7 +203,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             String typeString = OptUtils.toOllirType(thisType);
             code.append(typeString);
 
-            StringBuilder computation = new StringBuilder();
             String tempToUse = OptUtils.getTemp();
             computation.append(tempToUse);
             computation.append(typeString);
@@ -220,7 +220,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         code.append(".V");
         code.append(END_STMT);
 
-        return new OllirExprResult(code.toString());
+        return new OllirExprResult(code.toString(), computation);
     }
 
     /**
