@@ -1,8 +1,8 @@
 import io;
+import io;
 class Fac {
-    public int booleanTest(boolean c, int... args, int d){
+    public int booleanTest(boolean c, int d){
         boolean a;
-        int c;
         return 0;
     }
 }
