@@ -53,22 +53,25 @@ public class IndexCheck extends AnalysisVisitor {
             var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
             megaTable.addAll(table.getParameters(currentMethod));
             megaTable.addAll(table.getFields());
-            var arrayName = arrayAccess.getChild(0).get("name");
-            for (var element : megaTable){
-                if (element.getName().equals(arrayName)){
-                    if (!element.getType().isArray()){
-                        var message = "Indexing variable '%s' of type '%s', which is not an array";
-                        message = String.format(message, arrayName, element.getType().getName());
-                        addReport(Report.newError(
-                                Stage.SEMANTIC,
-                                NodeUtils.getLine(arrayAccess),
-                                NodeUtils.getColumn(arrayAccess),
-                                message,
-                                null)
-                        );
-                        return null;
+            String arrayName = "[...]";
+            if (arrayAccess.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())){
+                arrayName = arrayAccess.getChild(0).get("name");
+                for (var element : megaTable){
+                    if (element.getName().equals(arrayName)){
+                        if (!element.getType().isArray()){
+                            var message = "Indexing variable '%s' of type '%s', which is not an array";
+                            message = String.format(message, arrayName, element.getType().getName());
+                            addReport(Report.newError(
+                                    Stage.SEMANTIC,
+                                    NodeUtils.getLine(arrayAccess),
+                                    NodeUtils.getColumn(arrayAccess),
+                                    message,
+                                    null)
+                            );
+                            return null;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
             JmmNode arrayIndex = arrayAccess.getChild(1);
@@ -84,7 +87,7 @@ public class IndexCheck extends AnalysisVisitor {
                         if (element.getType().isArray() || !element.getType().getName().equals("int")){
                             var message = "Indexing array '%s' with variable '%s' of type '%s'";
                             if (element.getType().isArray()) message+=" array";
-                            message = String.format(message, arrayAccess.getChild(0).get("name"), varRefName, element.getType().getName());
+                            message = String.format(message, arrayName, varRefName, element.getType().getName());
                             addReport(Report.newError(
                                     Stage.SEMANTIC,
                                     NodeUtils.getLine(arrayAccess),
@@ -131,7 +134,7 @@ public class IndexCheck extends AnalysisVisitor {
             }
             if (!isInt){
                 var message = "Indexing array '%s' with expression resulting type '%s'";
-                message = String.format(message, arrayAccess.getChild(0).get("name"), arrayIndex.getKind());
+                message = String.format(message, arrayName, arrayIndex.getKind());
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(arrayAccess),
