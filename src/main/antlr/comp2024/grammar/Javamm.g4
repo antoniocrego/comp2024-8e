@@ -99,7 +99,7 @@ expr
     | expr '.' id=ID '(' args? ')' #FuncCall
     | expr '[' index=expr ']' #ArrayAccess
     | 'new' type '[' size=expr ']' # NewArray
-    | 'new' id=ID '(' ')' # NewClass //this doesn't allow passing parameters to the constructor
+    | 'new' id=ID '(' ')' # NewClass
     | '[' args ']' # ArrayInit
     | expr op=('*' | '/') expr #BinaryExpr
     | expr op=('+' | '-') expr #BinaryExpr

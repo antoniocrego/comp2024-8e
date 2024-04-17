@@ -1,6 +1,9 @@
-import ioPlus;
-class HelloWorld {
-	public static void main(String[] args) {
-		ioPlus.printHelloWorld();
+import io;
+class Fac {
+	public int compFac(int num){
+  	}
+
+	public static void main(String[] args){
+ 	      io.println(new Fac().compFac(10));
 	}
 }

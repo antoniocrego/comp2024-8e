@@ -28,6 +28,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     protected void buildVisitor() {
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
+        addVisit(PAREN_EXPR, this::visitParentExp);
         addVisit(INTEGER_LITERAL, this::visitInteger);
         addVisit(FUNC_CALL, this::visitFuncCall);
         addVisit(NEW_CLASS, this::visitNewClass);
@@ -59,9 +60,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         computation.append(tempToUse);
         computation.append(ollirIntType);
 
-        //TODO (thePeras): parse all the arguments
-
-        computation.append(", \"\").V ");
+        computation.append(", \"\").V "); // Void because constructors are void
         computation.append(END_STMT);
 
         String code = tempToUse + ollirIntType;
@@ -76,6 +75,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         return new OllirExprResult(code);
     }
 
+
+    private OllirExprResult visitParentExp(JmmNode node, Void unused){
+
+        return visit(node.getJmmChild(0));
+    }
 
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
 
@@ -163,8 +167,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             }
         }
 
-
-
         if(isStatic){
             invoke = "invokestatic";
         }
@@ -192,6 +194,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         code.append(")");
+
+        // Check if func call was done in an assign statement
         var assignStm = node.getAncestor(ASSIGN_STMT);
         if(assignStm.isPresent()){
             Type thisType = TypeUtils.getExprType(assignStm.get().getJmmChild(0), table);
@@ -211,10 +215,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
             var newCode = tempToUse + typeString;
             return new OllirExprResult(newCode, computation);
-        }else{
-            code.append(".V");
-            code.append(END_STMT);
         }
+
+        code.append(".V");
+        code.append(END_STMT);
 
         return new OllirExprResult(code.toString());
     }
