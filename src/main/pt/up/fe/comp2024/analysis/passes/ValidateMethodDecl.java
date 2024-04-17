@@ -427,16 +427,18 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                     return null;
                 }
             }
-            else{
-                var message = String.format("Return value of type '%s' given for function '%s' of return type '%s'",returnExpr.getKind(),returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(returnStmt),
-                        NodeUtils.getColumn(returnStmt),
-                        message,
-                        null)
-                );
-                return null;
+            else if (returnExpr.getKind().equals(Kind.ARRAY_INIT.toString())){
+                if (!expectedReturnType.equals(new Type("int", true))){
+                    var message = String.format("Return value of type '%s' array given for function '%s' of return type '%s'","int",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(returnStmt),
+                            NodeUtils.getColumn(returnStmt),
+                            message,
+                            null)
+                    );
+                    return null;
+                }
             }
             if (elementType.getName().isEmpty()) return null;
             if (!elementType.equals(expectedReturnType)){
