@@ -38,7 +38,7 @@ public class IndexCheck extends AnalysisVisitor {
         // Check if exists a parameter or variable declaration with the same name as the variable reference
 
         try{
-            if (!arrayAccess.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())){
+            if (!(arrayAccess.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString()) || arrayAccess.getChild(0).getKind().equals(Kind.ARRAY_INIT.toString()))){
                 var message = "Indexing expression of type '%s', which is not an array";
                 message = String.format(message, arrayAccess.getKind());
                 addReport(Report.newError(
