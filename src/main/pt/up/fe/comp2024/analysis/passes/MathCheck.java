@@ -26,6 +26,7 @@ public class MathCheck extends AnalysisVisitor {
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
+        addVisit(Kind.COMPARISON_EXPR, this::visitBinaryExpr);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -112,9 +113,9 @@ public class MathCheck extends AnalysisVisitor {
                 found2 = true;
             }
 
-            var megaTable = new ArrayList<>(table.getFields());
+            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
             megaTable.addAll(table.getParameters(currentMethod));
-            megaTable.addAll(table.getLocalVariables(currentMethod));
+            megaTable.addAll(table.getFields());
 
             for (var element : megaTable){
                 if (found1 && found2) break;
