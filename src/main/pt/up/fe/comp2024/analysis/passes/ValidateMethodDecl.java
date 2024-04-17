@@ -401,7 +401,7 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                 if (!methodCallerType.getName().equals(table.getClassName())) return null;
                 else elementType = table.getReturnType(methodName);
             }
-            else if (returnExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || returnExpr.getKind().equals(Kind.BINARY_EXPR.toString()) || returnExpr.getKind().equals(Kind.ARRAY_ACCESS.toString())){
+            else if (returnExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || returnExpr.getKind().equals(Kind.BINARY_EXPR.toString()) || returnExpr.getKind().equals(Kind.ARRAY_ACCESS.toString()) || returnExpr.getKind().equals(Kind.LENGTH_EXPR.toString())){
                 if (!expectedReturnType.equals(new Type("int", false))){
                     var message = String.format("Return value of type '%s' given for function '%s' of return type '%s'","int",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
                     addReport(Report.newError(

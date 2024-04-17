@@ -78,7 +78,7 @@ public class IndexCheck extends AnalysisVisitor {
             while (arrayIndex.getKind().equals(Kind.PAREN_EXPR.toString())){
                 arrayIndex = arrayIndex.getChild(0);
             }
-            boolean isInt = arrayIndex.getKind().equals(Kind.INTEGER_LITERAL.toString()) || arrayIndex.getKind().equals(Kind.BINARY_EXPR.toString()) || arrayIndex.getKind().equals(Kind.ARRAY_ACCESS.toString());
+            boolean isInt = arrayIndex.getKind().equals(Kind.INTEGER_LITERAL.toString()) || arrayIndex.getKind().equals(Kind.BINARY_EXPR.toString()) || arrayIndex.getKind().equals(Kind.ARRAY_ACCESS.toString()) || arrayIndex.getKind().equals(Kind.LENGTH_EXPR.toString());
             if (arrayIndex.getKind().equals(Kind.VAR_REF_EXPR.toString())){
                 var varRefName = arrayIndex.get("name");
 

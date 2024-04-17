@@ -6,6 +6,8 @@ class Fac {
     }
 
     public int booleanTest(boolean c, int d){
-        return [1,2,3][true];
+        int a;
+        a = [1,2,3].length;
+        return a;
     }
 }

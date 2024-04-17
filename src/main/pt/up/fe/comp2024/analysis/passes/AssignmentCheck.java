@@ -255,7 +255,7 @@ public class AssignmentCheck extends AnalysisVisitor {
                 );
                 return null;
             }
-            else if (elementType.equals("int") && !isArray && !(assignExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || assignExpr.getKind().equals(Kind.BINARY_EXPR.toString()) || assignExpr.getKind().equals(Kind.ARRAY_ACCESS.toString()))) {
+            else if (elementType.equals("int") && !isArray && !(assignExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || assignExpr.getKind().equals(Kind.BINARY_EXPR.toString()) || assignExpr.getKind().equals(Kind.ARRAY_ACCESS.toString()) || assignExpr.getKind().equals(Kind.LENGTH_EXPR.toString()))) {
                 var message = String.format("Assignment of type '%s' to variable '%s' of type int.", assignExpr.getKind(), varRefName);
                 addReport(Report.newError(
                         Stage.SEMANTIC,
