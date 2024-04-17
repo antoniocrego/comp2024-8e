@@ -36,7 +36,8 @@ public enum Kind {
     FUNC_ARGS,
     VARARG_TYPE,
     PRIMITIVE_TYPE,
-    CUSTOM_TYPE;
+    CUSTOM_TYPE,
+    VOID_TYPE;
 
 
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);

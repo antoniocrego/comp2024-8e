@@ -54,6 +54,42 @@ public class ValidateMethodDecl extends AnalysisVisitor {
             return null;
         }
 
+        if (currentMethod.equals("main")){
+            if (!method.getChild(0).getKind().equals(Kind.VOID_TYPE.toString())){
+                var message = String.format("Main method declared with non-void return type");
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        message,
+                        null)
+                );
+            }
+            var mainParams = table.getParameters("main");
+            if (!(mainParams.size()==1 || mainParams.get(0).getType().isArray() || mainParams.get(0).getType().getName().equals("String"))){
+                var message = "Invalid parameters for main method, expected single parameter of type String array";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        message,
+                        null)
+                );
+            }
+            return null;
+        }
+
+        if (method.getOptional("accessType").isPresent() && method.get("accessType").equals("static")){
+            var message = String.format("Non-main method '%s' declared with static access type", currentMethod);
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(method),
+                    NodeUtils.getColumn(method),
+                    message,
+                    null)
+            );
+        }
+
         Map<String, Long> parameterCounts = table.getParameters(currentMethod).stream()
                 .map(Symbol::getName) // Extract parameter names
                 .collect(Collectors.groupingBy(name -> name, Collectors.counting())); // Count occurrences

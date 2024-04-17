@@ -1,7 +1,11 @@
 import io;
 
 class Fac {
-    public int booleanTest(boolean d, int d){
+    public static void main(String[] args) {
+
+    }
+
+    public int booleanTest(boolean c, int d){
         boolean a;
         return 0;
     }
