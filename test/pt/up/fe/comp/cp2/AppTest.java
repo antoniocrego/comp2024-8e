@@ -19,6 +19,7 @@ public class AppTest {
         assertEquals("Hello, World!", result.strip());
     }
 
+
     @Test
     public void testSimple() {
         var code = SpecsIo.getResource("pt/up/fe/comp/cp2/apps/Simple.jmm");
