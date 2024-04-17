@@ -23,7 +23,6 @@ PUBLIC : 'public' ;
 PRIVATE :  'private';
 PROTECTED : 'protected';
 
-LENGTH : 'length' ;
 IF : 'if' ;
 ELSE : 'else' ;
 WHILE : 'while' ;
@@ -95,7 +94,7 @@ args
 expr
     : '(' expr ')' #ParenExpr
     | op='!' expr #UnaryOp
-    | expr '.' LENGTH # LengthExpr
+    | expr '.' 'length' # LengthExpr
     | expr '.' id=ID '(' args? ')' #FuncCall
     | expr '[' index=expr ']' #ArrayAccess
     | 'new' type '[' size=expr ']' # NewArray
