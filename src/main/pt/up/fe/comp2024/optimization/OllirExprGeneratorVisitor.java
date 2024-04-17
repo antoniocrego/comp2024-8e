@@ -185,12 +185,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         // Parsing parameters
         if(node.getChildren().size() > 1){
             for(JmmNode argNode : node.getChild(1).getChildren()){
+                var visitedArgNode = visit(argNode);
+                computation.append(visitedArgNode.getComputation());
                 code.append(", ");
-                var id = argNode.get("name");
-                Type type = TypeUtils.getExprType(argNode, table);
-                String ollirType = OptUtils.toOllirType(type);
-                code.append(id);
-                code.append(ollirType);
+                code.append(visitedArgNode.getCode());
             }
         }
 

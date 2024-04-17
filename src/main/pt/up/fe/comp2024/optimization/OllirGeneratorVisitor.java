@@ -60,9 +60,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         var funcCall = exprVisitor.visit(stmt);
 
-        //TODO (thePeras) : getComputation for examples with temps?
-
-        return funcCall.getCode();
+        return funcCall.getComputation() + funcCall.getCode();
     }
     private String visitAssignStmt(JmmNode node, Void unused) {
 
@@ -193,7 +191,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder(".field ");
 
-        // TODO (thePeras): What is the default visibility?
         boolean isPrivate = NodeUtils.getBooleanAttribute(node, "isPrivate", "false");
 
         String visibility = isPrivate ? "private " : "public ";
@@ -208,8 +205,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(type);
 
         code.append(END_STMT);
-
-        System.out.print(code);
 
         return code.toString();
     }
