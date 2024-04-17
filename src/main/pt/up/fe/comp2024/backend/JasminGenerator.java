@@ -48,6 +48,8 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
+        generators.put(CallInstruction.class, this::generateCall);
+        generators.put(FieldInstruction.class, this::generateField);
     }
 
     public List<Report> getReports() {
@@ -55,7 +57,6 @@ public class JasminGenerator {
     }
 
     public String build() {
-
 
         // This way, build is idempotent
         if (code == null) {
@@ -68,246 +69,30 @@ public class JasminGenerator {
 
     private String generateClassUnit(ClassUnit classUnit) {
 
-
-
         var code = new StringBuilder();
 
         // generate class name
         var className = ollirResult.getOllirClass().getClassName();
-
-        if (className.equals("Test")) {
-            if (ollirResult.getOllirClass().getMethods().size() == 2) {
-                return ".class Test\n" +
-                        ".super java/lang/Object\n" +
-                        "\n" +
-                        ".method public <init>()V\n" +
-                        "    aload_0\n" +
-                        "    invokespecial java/lang/Object/<init>()V\n" +
-                        "    return\n" +
-                        ".end method\n" +
-                        "\n" +
-                        ".method public static main([Ljava/lang/String;)V\n" +
-                        "    .limit stack 99\n" +
-                        "    .limit locals 99\n" +
-                        "    return\n" +
-                        ".end method\n" +
-                        "\n" +
-                        ".method public foo()I\n" +
-                        "    .limit stack 99\n" +
-                        "    .limit locals 99\n" +
-                        "    iconst_1\n" +
-                        "    istore_1\n" +
-                        "    iconst_2\n" +
-                        "    istore_2\n" +
-                        "    iload_1\n" +
-                        "    iload_2\n" +
-                        "    iadd\n" +
-                        "    istore_3\n" +
-                        "    iload_3\n" +
-                        "    ireturn\n" +
-                        ".end method";
-            }
-            else if (ollirResult.getOllirClass().getMethods().size() == 1) {
-                return "OllirToJasminInvoke.ollir:\n" +
-                        ".class Test\n" +
-                        ".super java/lang/Object\n" +
-                        ";default constructor\n" +
-                        ".method public <init>()V\n" +
-                        "   aload_0\n" +
-                        "   invokespecial java/lang/Object/<init>()V\n" +
-                        "   return\n" +
-                        ".end method\n" +
-                        ".method public static main([Ljava/lang/String;)V\n" +
-                        "   .limit stack 99\n" +
-                        "   .limit locals 99\n" +
-                        "   \n" +
-                        "   new Test\n" +
-                        "   dup\n" +
-                        "   astore_1\n" +
-                        "   aload_1\n" +
-                        "   \n" +
-                        "   invokespecial Test/<init>()V\n" +
-                        "   pop\n" +
-                        "   \n" +
-                        "   return\n" +
-                        ".end method";
-            }
-            else {
-                return ".class Test\n" +
-                        ".super java/lang/Object\n" +
-                        ";default constructor\n" +
-                        ".field intField I\n" +
-                        ".method public <init>()V\n" +
-                        "   aload_0\n" +
-                        "   invokespecial java/lang/Object/<init>()V\n" +
-                        "   return\n" +
-                        ".end method\n" +
-                        ".method public static main([Ljava/lang/String;)V\n" +
-                        "   .limit stack 99\n" +
-                        "   .limit locals 99\n" +
-                        "   \n" +
-                        "   return\n" +
-                        ".end method\n" +
-                        ".method public foo()V\n" +
-                        "   .limit stack 99\n" +
-                        "   .limit locals 99\n" +
-                        "   aload_0\n" +
-                        "   bipush 10\n" +
-                        "   putfield Test/intField I\n" +
-                        "   aload_0\n" +
-                        "   getfield Test/intField I\n" +
-                        "   istore_1\n" +
-                        "   \n" +
-                        "   return\n" +
-                        ".end method";
-            }
-        }
-        if (className.equals("SymbolTable"))
-            return ".class SymbolTable\n" +
-                    ".super Quicksort\n" +
-                    ".field public intField I\n" +
-                    ".field public boolField Z\n" +
-                    ".method public <init>()V\n" +
-                    "   aload_0\n" +
-                    "   invokespecial Quicksort/<init>()V\n" +
-                    "   return\n" +
-                    ".end method\n" +
-                    ".method public method1()I\n" +
-                    "   .limit stack 99\n" +
-                    "   .limit locals 99\n" +
-                    "   iconst_0\n" +
-                    "   istore_1\n" +
-                    "   iconst_1\n" +
-                    "   istore_2\n" +
-                    "   iconst_0\n" +
-                    "   \n" +
-                    "   ireturn\n" +
-                    ".end method\n" +
-                    ".method public method2(IZ)Z\n" +
-                    "   .limit stack 99\n" +
-                    "   .limit locals 99\n" +
-                    "   iload_2\n" +
-                    "   \n" +
-                    "   ireturn\n" +
-                    ".end method\n" +
-                    ".method public static main([Ljava/lang/String;)V\n" +
-                    "   .limit stack 99\n" +
-                    "   .limit locals 99\n" +
-                    "   \n" +
-                    "   return\n" +
-                    ".end method";
-
-        if (className.equals("Simple")) {
-            return ".class Simple\n" +
-                    ".super java/lang/Object\n" +
-                    ";default constructor\n" +
-                    ".method public <init>()V\n" +
-                    "   aload_0\n" +
-                    "   invokespecial java/lang/Object/<init>()V\n" +
-                    "   return\n" +
-                    ".end method\n" +
-                    ".method public add(II)I\n" +
-                    "   .limit stack 99\n" +
-                    "   .limit locals 99\n" +
-                    "   aload_0\n" +
-                    "   \n" +
-                    "   invokevirtual Simple/constInstr()I\n" +
-                    "   istore_3\n" +
-                    "   iload_1\n" +
-                    "   iload_3\n" +
-                    "   iadd\n" +
-                    "   istore 4\n" +
-                    "   iload 4\n" +
-                    "   istore 5\n" +
-                    "   iload 5\n" +
-                    "   \n" +
-                    "   ireturn\n" +
-                    ".end method\n" +
-                    ".method public static main([Ljava/lang/String;)V\n" +
-                    "   .limit stack 99\n" +
-                    "   .limit locals 99\n" +
-                    "   bipush 20\n" +
-                    "   istore_1\n" +
-                    "   bipush 10\n" +
-                    "   istore_2\n" +
-                    "   \n" +
-                    "   new Simple\n" +
-                    "   dup\n" +
-                    "   astore_3\n" +
-                    "   aload_3\n" +
-                    "   \n" +
-                    "   invokespecial Simple/<init>()V\n" +
-                    "   pop\n" +
-                    "   aload_3\n" +
-                    "   astore 4\n" +
-                    "   aload 4\n" +
-                    "   \n" +
-                    "   iload_1\n" +
-                    "   iload_2\n" +
-                    "   invokevirtual Simple/add(II)I\n" +
-                    "   istore 5\n" +
-                    "   iload 5\n" +
-                    "   invokestatic io/println(I)V\n" +
-                    "   \n" +
-                    "   return\n" +
-                    ".end method\n" +
-                    ".method public constInstr()I\n" +
-                    "   .limit stack 99\n" +
-                    "   .limit locals 99\n" +
-                    "   iconst_0\n" +
-                    "   istore_1\n" +
-                    "   iconst_4\n" +
-                    "   istore_1\n" +
-                    "   bipush 8\n" +
-                    "   istore_1\n" +
-                    "   bipush 14\n" +
-                    "   istore_1\n" +
-                    "   sipush 250\n" +
-                    "   istore_1\n" +
-                    "   sipush 400\n" +
-                    "   istore_1\n" +
-                    "   sipush 1000\n" +
-                    "   istore_1\n" +
-                    "   ldc 100474650\n" +
-                    "   istore_1\n" +
-                    "   bipush 10\n" +
-                    "   istore_1\n" +
-                    "   iload_1\n" +
-                    "   \n" +
-                    "   ireturn\n" +
-                    ".end method";
-        }
-
-        return ".class HelloWorld\n" +
-                ".super java/lang/Object\n" +
-                ";default constructor\n" +
-                ".method public <init>()V\n" +
-                "   aload_0\n" +
-                "   invokespecial java/lang/Object/<init>()V\n" +
-                "   return\n" +
-                ".end method\n" +
-                ".method public static main([Ljava/lang/String;)V\n" +
-                "   .limit stack 99\n" +
-                "   .limit locals 99\n" +
-                "   invokestatic ioPlus/printHelloWorld()V\n" +
-                "   \n" +
-                "   return\n" +
-                ".end method";
-        /*
         code.append(".class ").append(className).append(NL).append(NL);
 
         // TODO: Hardcoded to Object, needs to be expanded
-        code.append(".super java/lang/Object").append(NL);
+        // DONE ?
+        code.append(".super ");
+        if (classUnit.getSuperClass() != null)
+            code.append(classUnit.getSuperClass());
+        else
+            code.append("java/lang/Object");
+        code.append(NL);
 
         // generate a single constructor method
+        var superClass = classUnit.getSuperClass() == null ? "java/lang/Object" : classUnit.getSuperClass();
         var defaultConstructor = """
-                ;default constructor
-                .method public <init>()V
-                    aload_0
-                    invokespecial java/lang/Object/<init>()V
-                    return
-                .end method
-                """;
+        .method public <init>()V
+            aload_0
+            invokespecial %s/<init>()V
+            return
+        .end method
+        """.formatted(superClass);
         code.append(defaultConstructor);
 
         // generate code for all other methods
@@ -323,7 +108,7 @@ public class JasminGenerator {
             code.append(generators.apply(method));
         }
 
-        return code.toString();*/
+        return code.toString();
     }
 
 
@@ -332,12 +117,6 @@ public class JasminGenerator {
         // set method
         currentMethod = method;
 
-        if (method.getMethodName().equals("main")) {
-            return ".method public static main([Ljava/lang/String;)V\n" +
-                    "    return\n" +
-                    ".end method";
-        }
-
         var code = new StringBuilder();
 
         // calculate modifier
@@ -345,10 +124,29 @@ public class JasminGenerator {
                 method.getMethodAccessModifier().name().toLowerCase() + " " :
                 "";
 
+        var isStatic = method.isStaticMethod();
+        var isFinal = method.isFinalMethod();
+
         var methodName = method.getMethodName();
 
+        var returnType = getType(method.getReturnType());
+        var paramTypes = method.getParams().stream()
+                .map(param -> getType(param.getType()))
+                .collect(Collectors.joining());
+
         // TODO: Hardcoded param types and return type, needs to be expanded
-        code.append("\n.method ").append(modifier).append(methodName).append("()I").append(NL);
+        // DONE ?
+        code
+                .append("\n.method ")
+                .append(modifier)
+                .append(isFinal ? "final " : "")
+                .append(isStatic ? "static " : "")
+                .append(methodName)
+                .append("(")
+                .append(paramTypes)
+                .append(")")
+                .append(returnType)
+                .append(NL);
 
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
@@ -388,7 +186,12 @@ public class JasminGenerator {
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
         // TODO: Hardcoded for int type, needs to be expanded
-        code.append("istore ").append(reg).append(NL);
+        // DONE ?
+        code.append(switch (assign.getTypeOfAssign().getTypeOfElement()) {
+            case INT32, BOOLEAN -> "i";
+            case VOID -> "";
+            default -> "a";
+        }).append("store ").append(reg).append(NL);
 
         return code.toString();
     }
@@ -398,9 +201,6 @@ public class JasminGenerator {
     }
 
     private String generateLiteral(LiteralElement literal) {
-        if (literal.getType().getTypeOfElement().equals(ElementType.INT32)) {
-            return "iconst_" + literal.getLiteral() + NL;
-        }
         return "ldc " + literal.getLiteral() + NL;
     }
 
@@ -433,11 +233,193 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         // TODO: Hardcoded to int return type, needs to be expanded
+        // DONE ?
+        if (returnInst.getOperand() != null)
+            code.append(generators.apply(returnInst.getOperand()));
+        code.append(switch (returnInst.getElementType()) {
+            case INT32, BOOLEAN -> "i";
+            case VOID -> "";
+            default -> "a";
+        }).append("return").append(NL);
 
-        code.append(generators.apply(returnInst.getOperand()));
-        code.append("ireturn").append(NL);
 
         return code.toString();
+    }
+
+    private String generateCall(CallInstruction callInst) {
+        var code = new StringBuilder();
+
+        switch (callInst.getInvocationType()) {
+            case invokevirtual -> {
+                // dar load ao objeto
+//
+//                Operand caller = (Operand) callInst.getCaller();
+//                code
+//                        .append("invokevirtual ")
+//                        .append(caller.getName())
+//                        .append("(")
+////                        .append(args)
+//                        .append(")")
+//                        .append(getType(callInst.getReturnType()))
+//                        .append(NL);
+            }
+            case invokestatic -> {
+//                var caller = (Operand) callInst.getCaller();
+//                code
+//                        .append("invokestatic ")
+//                        .append(caller.getName())
+//                        .append("(")
+////                        .append(args)
+//                        .append(")")
+//                        .append(getType(callInst.getReturnType()))
+//                        .append(NL);
+            }
+            case invokespecial -> {
+                var caller = (Operand) callInst.getCaller();
+                var className = ((ClassType) caller.getType()).getName();
+//                var funcPath = getFuncPath(className);
+//                var funcName = className
+//                var methodName = (LiteralElement) callInst.getMethodName();
+                var reg = currentMethod.getVarTable().get(caller.getName()).getVirtualReg();
+                code
+                        .append("aload ")
+                        .append(reg)
+                        .append(NL)
+                        .append("invokespecial ")
+//                        .append(funcPath)
+//                        .append(methodName.getLiteral())
+                        .append(className)
+                        .append("/<init>()")
+                        .append(getType(callInst.getReturnType()))
+                        .append(NL);
+            }
+            case NEW -> {
+                var caller = (Operand) callInst.getCaller();
+                code
+                        .append("new ")
+                        .append(caller.getName())
+                        .append(NL);
+            }
+            default -> throw new NotImplementedException(callInst.getClass());
+        };
+
+
+
+        return code.toString();
+    }
+
+    private String generateField(FieldInstruction fieldInstruction) {
+        StringBuilder code = new StringBuilder();
+
+        switch (fieldInstruction.getInstType()) {
+            case PUTFIELD -> {
+                Element op1 = fieldInstruction.getOperands().get(0);
+                Element op2 = fieldInstruction.getOperands().get(1);
+                Element op3 = fieldInstruction.getOperands().get(2);
+                code
+                    .append(loadInstruction(op1))
+                    .append(loadInstruction(op3))
+                    .append("putfield ")
+                    .append(getFieldSignature(fieldInstruction))
+                    .append(NL);
+            }
+            case GETFIELD -> {
+                Element op1 = fieldInstruction.getOperands().get(0);
+                Element op2 = fieldInstruction.getOperands().get(1);
+                code
+                    .append(loadInstruction(op1))
+                    .append("getfield ")
+                    .append(getFieldSignature(fieldInstruction))
+                    .append(NL);
+            }
+            default -> throw new NotImplementedException(fieldInstruction.getClass());
+        }
+
+        return code.toString();
+    }
+
+    private String getFieldSignature(FieldInstruction fieldInstruction) {
+        StringBuilder signature = new StringBuilder();
+
+        List<Element> operandsList = fieldInstruction.getOperands();
+        Operand firstOp = (Operand) operandsList.get(0);
+        Operand secondOp = (Operand) operandsList.get(1);
+        String className = ((ClassType) firstOp.getType()).getName();
+        String fieldName = secondOp.getName();
+        String returnType = getType(secondOp.getType());
+
+        signature
+                .append(className)
+                .append("/")
+                .append(fieldName)
+                .append(" ")
+                .append(returnType);
+
+        return signature.toString();
+    }
+
+    private String getFuncPath(String className) {
+        String path = "";
+        for (String importPath : ollirResult.getOllirClass().getImports())
+            if (importPath.endsWith(className)) path = importPath;
+        if (path.isEmpty())
+            return className + "/";
+        return path.replace('.', '/') + "/";
+    }
+
+    private String loadInstruction(Element element) {
+        StringBuilder code = new StringBuilder();
+        if (element instanceof LiteralElement) {
+            LiteralElement literal = (LiteralElement) element;
+            ElementType type = element.getType().getTypeOfElement();
+            switch (type) {
+                case INT32, BOOLEAN -> {
+                    int val = Integer.parseInt(literal.getLiteral());
+                    if (val == -1) code.append("iconst_m1");
+                    else if (val >= 0 && val <= 5) code.append("iconst_").append(val);
+                    else if (val >= -128 && val <= 127) code.append("bipush ").append(val);
+                    else if (val >= -32768 && val <= 32767) code.append("sipush ").append(val);
+                    else code.append("ldc ").append(val);
+                }
+                default -> throw new NotImplementedException(element);
+            }
+        } else if (element instanceof Operand) {
+            code
+            .append(switch (element.getType().getTypeOfElement()) {
+                case INT32, BOOLEAN -> code
+                        .append("iload ")
+                        .append(getIndex(((Operand) element).getName()));
+                case OBJECTREF, STRING, ARRAYREF, CLASS -> code
+                        .append("aload ")
+                        .append(getIndex(((Operand) element).getName()));
+                case THIS -> "aload_0";
+                default -> throw new NotImplementedException(element);
+            });
+        }
+        code.append(NL);
+        return code.toString();
+    }
+
+    private String getIndex(String name) {
+        return String.valueOf(currentMethod.getVarTable().get(name).getVirtualReg());
+    }
+
+    private String getType(Type type) {
+        return switch (type.getTypeOfElement()) {
+            case INT32 -> "I";
+            case BOOLEAN -> "Z";
+            case ARRAYREF -> {
+                ArrayType arrayType = (ArrayType) type;
+                yield "[" + getType(arrayType.getElementType());
+            }
+            case OBJECTREF, CLASS -> {
+                ClassType classType = (ClassType) type;
+                yield "L" + classType.getName();
+            }
+            case THIS -> null;
+            case STRING -> "Ljava/lang/String;";
+            case VOID -> "V";
+        };
     }
 
 }
