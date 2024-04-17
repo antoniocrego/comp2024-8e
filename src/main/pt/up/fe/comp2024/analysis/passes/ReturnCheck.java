@@ -59,10 +59,25 @@ public class ReturnCheck extends AnalysisVisitor {
                 }
             }
             else if (returnExpr.getKind().equals(Kind.FUNC_CALL.toString())){
-                elementType = table.getReturnType(returnExpr.get("id"));
-                if (elementType == null) return null;
+                var methodVariable = returnExpr.getChild(0).get("name");
+                var methodName = returnExpr.get("id");
+                Type methodCallerType = new Type("", false);
+                var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
+                megaTable.addAll(table.getParameters(currentMethod));
+                megaTable.addAll(table.getFields());
+                if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+                else if (!table.getImports().contains(methodVariable)){
+                    for (var element : megaTable) {
+                        if (element.getName().equals(methodVariable)) {
+                            methodCallerType = element.getType();
+                            break;
+                        }
+                    }
+                }
+                if (!methodCallerType.getName().equals(table.getClassName())) return null;
+                else elementType = table.getReturnType(methodName);
             }
-            else if (returnExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || returnExpr.getKind().equals(Kind.BINARY_EXPR.toString())){
+            else if (returnExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || returnExpr.getKind().equals(Kind.BINARY_EXPR.toString()) || returnExpr.getKind().equals(Kind.ARRAY_ACCESS.toString())){
                 if (!expectedReturnType.equals(new Type("int", false))){
                     var message = String.format("Return value of type '%s' given for function '%s' of return type '%s'","int",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
                     addReport(Report.newError(
@@ -75,7 +90,7 @@ public class ReturnCheck extends AnalysisVisitor {
                     return null;
                 }
             }
-            else if (returnExpr.getKind().equals(Kind.BOOLEAN.toString())){
+            else if (returnExpr.getKind().equals(Kind.BOOLEAN.toString()) || returnExpr.getKind().equals(Kind.COMPARISON_EXPR.toString()) || returnExpr.getKind().equals(Kind.BOOLEAN_EXPR.toString()) || returnExpr.getKind().equals(Kind.UNARY_OP.toString())){
                 if (!expectedReturnType.equals(new Type("boolean", false))){
                     var message = String.format("Return value of type '%s' given for function '%s' of return type '%s'","boolean",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
                     addReport(Report.newError(

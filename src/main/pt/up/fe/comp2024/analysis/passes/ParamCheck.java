@@ -127,9 +127,20 @@ public class ParamCheck extends AnalysisVisitor {
                                 }
                             }
                             else if (givenParameters.getChild(i).getKind().equals(Kind.FUNC_CALL.toString())){ // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
-                                var returnType = table.getReturnType(givenParameters.getChild(i).getChild(1).get("id"));
-                                if (returnType==null) givenArgType = expectedArgType;
-                                else givenArgType = returnType;
+                                var methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
+                                var methodNameInner = givenParameters.getChild(i).get("id");
+                                Type methodCallerTypeInner = new Type("", false);
+                                if (methodVariableInner.equals("this")) methodCallerTypeInner = new Type(table.getClassName(), false);
+                                else if (!table.getImports().contains(methodVariableInner)){
+                                    for (var element : megaTable) {
+                                        if (element.getName().equals(methodVariableInner)) {
+                                            methodCallerTypeInner = element.getType();
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (!methodCallerTypeInner.getName().equals(table.getClassName())) givenArgType=expectedArgType;
+                                else givenArgType = table.getReturnType(methodNameInner);
                             }
                             else givenArgType = TypeUtils.getExprType(givenParameters.getChild(i),table);
                             if (!givenArgType.equals(expectedArgType)){
@@ -174,9 +185,20 @@ public class ParamCheck extends AnalysisVisitor {
                         }
                     }
                     else if (givenParameters.getChild(i).getKind().equals(Kind.FUNC_CALL.toString())){ // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
-                        var returnType = table.getReturnType(givenParameters.getChild(i).getChild(1).get("id"));
-                        if (returnType==null) givenArgType = expectedArgType;
-                        else givenArgType = returnType;
+                        var methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
+                        var methodNameInner = givenParameters.getChild(i).get("id");
+                        Type methodCallerTypeInner = new Type("", false);
+                        if (methodVariableInner.equals("this")) methodCallerTypeInner = new Type(table.getClassName(), false);
+                        else if (!table.getImports().contains(methodVariableInner)){
+                            for (var element : megaTable) {
+                                if (element.getName().equals(methodVariableInner)) {
+                                    methodCallerTypeInner = element.getType();
+                                    break;
+                                }
+                            }
+                        }
+                        if (!methodCallerTypeInner.getName().equals(table.getClassName())) givenArgType=expectedArgType;
+                        else givenArgType = table.getReturnType(methodNameInner);
                     }
                     else givenArgType = TypeUtils.getExprType(givenParameters.getChild(i),table);
                     if (!givenArgType.equals(expectedArgType)){

@@ -46,7 +46,7 @@ public class TypeUtils {
         return switch (kind) {
             case BINARY_EXPR -> getBinExprType(expr);
             case VAR_REF_EXPR -> getVarExprType(expr, table);
-            case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
+            case INTEGER_LITERAL, ARRAY_ACCESS -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN,BOOLEAN_EXPR,COMPARISON_EXPR,UNARY_OP -> new Type("boolean",false);
             case ARRAY_TYPE, NEW_ARRAY -> new Type(expr.getChild(0).get("id"), true);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");

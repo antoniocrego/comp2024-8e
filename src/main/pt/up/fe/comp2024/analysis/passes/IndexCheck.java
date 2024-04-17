@@ -75,7 +75,7 @@ public class IndexCheck extends AnalysisVisitor {
             while (arrayIndex.getKind().equals(Kind.PAREN_EXPR.toString())){
                 arrayIndex = arrayIndex.getChild(0);
             }
-            boolean isInt = arrayIndex.getKind().equals(Kind.INTEGER_LITERAL.toString()) || arrayIndex.getKind().equals(Kind.BINARY_EXPR.toString());
+            boolean isInt = arrayIndex.getKind().equals(Kind.INTEGER_LITERAL.toString()) || arrayIndex.getKind().equals(Kind.BINARY_EXPR.toString()) || arrayIndex.getKind().equals(Kind.ARRAY_ACCESS.toString());
             if (arrayIndex.getKind().equals(Kind.VAR_REF_EXPR.toString())){
                 var varRefName = arrayIndex.get("name");
 
@@ -104,6 +104,7 @@ public class IndexCheck extends AnalysisVisitor {
                 var methodName = arrayIndex.get("id");
                 Type methodCallerType = new Type("", false);
                 if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+                else if (table.getImports().contains(methodVariable)) return null;
                 else{
                     for (var element : megaTable) {
                         if (element.getName().equals(methodVariable)) {

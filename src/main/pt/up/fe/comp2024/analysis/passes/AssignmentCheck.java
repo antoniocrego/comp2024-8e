@@ -74,6 +74,7 @@ public class AssignmentCheck extends AnalysisVisitor {
                 var methodName = assignExpr.get("id");
                 Type methodCallerType = new Type("", false);
                 if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+                else if (table.getImports().contains(methodVariable)) return null;
                 else {
                     for (var element : megaTable) {
                         if (element.getName().equals(methodVariable)) {
@@ -159,6 +160,7 @@ public class AssignmentCheck extends AnalysisVisitor {
                         var methodName = top.get("id");
                         Type methodCallerType = new Type("", false);
                         if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+                        else if (table.getImports().contains(methodVariable)) continue;
                         else{
                             for (var element : megaTable) {
                                 if (element.getName().equals(methodVariable)) {
@@ -167,7 +169,7 @@ public class AssignmentCheck extends AnalysisVisitor {
                                 }
                             }
                         }
-                        if (!methodCallerType.isArray() && !methodCallerType.getName().equals(table.getClassName())) return null;
+                        if (!methodCallerType.isArray() && !methodCallerType.getName().equals(table.getClassName())) continue;
                         var returnType = table.getReturnType(methodName);
                         if (!returnType.getName().equals("int") || returnType.isArray()){
                             var message = "Initialization of array '%s' of type '%s' with function '%s' as member of invalid return type '%s'";
@@ -253,7 +255,7 @@ public class AssignmentCheck extends AnalysisVisitor {
                 );
                 return null;
             }
-            else if (elementType.equals("int") && !isArray && !(assignExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || assignExpr.getKind().equals(Kind.BINARY_EXPR.toString()))) {
+            else if (elementType.equals("int") && !isArray && !(assignExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || assignExpr.getKind().equals(Kind.BINARY_EXPR.toString()) || assignExpr.getKind().equals(Kind.ARRAY_ACCESS.toString()))) {
                 var message = String.format("Assignment of type '%s' to variable '%s' of type int.", assignExpr.getKind(), varRefName);
                 addReport(Report.newError(
                         Stage.SEMANTIC,
@@ -263,7 +265,7 @@ public class AssignmentCheck extends AnalysisVisitor {
                         null)
                 );
                 return null;
-            } else if (elementType.equals("boolean") && !isArray && !(assignExpr.getKind().equals(Kind.BOOLEAN.toString()))) {
+            } else if (elementType.equals("boolean") && !isArray && !(assignExpr.getKind().equals(Kind.BOOLEAN.toString()) || assignExpr.getKind().equals(Kind.BOOLEAN_EXPR.toString()) || assignExpr.getKind().equals(Kind.COMPARISON_EXPR.toString()) || assignExpr.getKind().equals(Kind.UNARY_OP.toString()))) {
                 var message = String.format("Assignment of type '%s' to variable '%s' of type bool.", assignExpr.getKind(), varRefName);
                 addReport(Report.newError(
                         Stage.SEMANTIC,

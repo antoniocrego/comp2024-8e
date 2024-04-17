@@ -44,23 +44,42 @@ public class MathCheck extends AnalysisVisitor {
             String varRefName2 = "";
             boolean found1 = false;
             boolean found2 = false;
+
+            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
+            megaTable.addAll(table.getParameters(currentMethod));
+            megaTable.addAll(table.getFields());
+
             if (binaryExpr.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
                 varRefName = binaryExpr.getChild(0).get("name");
             }
             else if (binaryExpr.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
-                var returnType = table.getReturnType(binaryExpr.getChild(0).get("id"));
-                if (returnType!=null){
-                    if (!returnType.getName().equals("int") || returnType.isArray()){
-                        var message = "Binary expression with function returning '%s'";
-                        if (returnType.isArray()) message += " array";
-                        addReport(Report.newError(
-                                Stage.SEMANTIC,
-                                NodeUtils.getLine(binaryExpr),
-                                NodeUtils.getColumn(binaryExpr),
-                                String.format(message, returnType.getName()),
-                                null)
-                        );
-                        return null;
+                var methodVariable = binaryExpr.getChild(0).getChild(0).get("name");
+                var methodName = binaryExpr.getChild(0).get("id");
+                Type methodCallerType = new Type("", false);
+                if (!table.getImports().contains(methodVariable)){
+                    if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+                    else{
+                        for (var element : megaTable) {
+                            if (element.getName().equals(methodVariable)) {
+                                methodCallerType = element.getType();
+                                break;
+                            }
+                        }
+                    }
+                    if (methodCallerType.getName().equals(table.getClassName())){
+                        var returnType = table.getReturnType(methodName);
+                        if (!returnType.getName().equals("int") || returnType.isArray()){
+                            var message = "Binary expression with function returning '%s'";
+                            if (returnType.isArray()) message += " array";
+                            addReport(Report.newError(
+                                    Stage.SEMANTIC,
+                                    NodeUtils.getLine(binaryExpr),
+                                    NodeUtils.getColumn(binaryExpr),
+                                    String.format(message, returnType.getName()),
+                                    null)
+                            );
+                            return null;
+                        }
                     }
                 }
                 found1 = true;
@@ -82,24 +101,38 @@ public class MathCheck extends AnalysisVisitor {
                 varRefName2 = binaryExpr.getChild(1).get("name");
             }
             else if (binaryExpr.getChild(1).getKind().equals(Kind.FUNC_CALL.toString())){
-                var returnType = table.getReturnType(binaryExpr.getChild(1).get("id"));
-                if (returnType!=null){
-                    if (!returnType.getName().equals("int") || returnType.isArray()){
-                        var message = "Binary expression with function returning '%s'";
-                        if (returnType.isArray()) message += " array";
-                        addReport(Report.newError(
-                                Stage.SEMANTIC,
-                                NodeUtils.getLine(binaryExpr),
-                                NodeUtils.getColumn(binaryExpr),
-                                String.format(message, returnType.getName()),
-                                null)
-                        );
-                        return null;
+                var methodVariable = binaryExpr.getChild(1).getChild(0).get("name");
+                var methodName = binaryExpr.getChild(1).get("id");
+                Type methodCallerType = new Type("", false);
+                if (!table.getImports().contains(methodVariable)){
+                    if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+                    else{
+                        for (var element : megaTable) {
+                            if (element.getName().equals(methodVariable)) {
+                                methodCallerType = element.getType();
+                                break;
+                            }
+                        }
+                    }
+                    if (methodCallerType.getName().equals(table.getClassName())){
+                        var returnType = table.getReturnType(methodName);
+                        if (!returnType.getName().equals("int") || returnType.isArray()){
+                            var message = "Binary expression with function returning '%s'";
+                            if (returnType.isArray()) message += " array";
+                            addReport(Report.newError(
+                                    Stage.SEMANTIC,
+                                    NodeUtils.getLine(binaryExpr),
+                                    NodeUtils.getColumn(binaryExpr),
+                                    String.format(message, returnType.getName()),
+                                    null)
+                            );
+                            return null;
+                        }
                     }
                 }
                 found2 = true;
             }
-            else if (!binaryExpr.getChild(1).getKind().equals(Kind.INTEGER_LITERAL.toString())){
+            else if (!(binaryExpr.getChild(1).getKind().equals(Kind.INTEGER_LITERAL.toString()) || binaryExpr.getChild(1).getKind().equals(Kind.ARRAY_ACCESS.toString()))){
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(binaryExpr),
@@ -112,10 +145,6 @@ public class MathCheck extends AnalysisVisitor {
             else{
                 found2 = true;
             }
-
-            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
-            megaTable.addAll(table.getParameters(currentMethod));
-            megaTable.addAll(table.getFields());
 
             for (var element : megaTable){
                 if (found1 && found2) break;
