@@ -128,6 +128,54 @@ public class ValidateMethodDecl extends AnalysisVisitor {
         catch(Exception e){
             return null;
         }
+
+        if (method.getChild(0).getKind().equals(Kind.VOID_TYPE.toString()) && !method.getChildren(Kind.RETURN_STMT.toString()).isEmpty()){
+            var message = String.format("Method '%s' expected no return statement, however, got one", currentMethod);
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(method),
+                    NodeUtils.getColumn(method),
+                    message,
+                    null)
+            );
+            return null;
+        }
+        else if (!method.getChildren(Kind.RETURN_STMT.toString()).isEmpty()){
+            if (method.getChildren(Kind.RETURN_STMT.toString()).size()>1){
+                var message = String.format("Multiple return statements given for method '%s'", currentMethod);
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        message,
+                        null)
+                );
+                return null;
+            }
+            if (!method.getChild(method.getNumChildren()-1).getKind().equals(Kind.RETURN_STMT.toString())){
+                var message = String.format("Return statement for method '%s' not given as last statement", currentMethod);
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        message,
+                        null)
+                );
+                return null;
+            }
+        }
+        else{
+            var message = String.format("No return statement given for method '%s'", currentMethod);
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(method),
+                    NodeUtils.getColumn(method),
+                    message,
+                    null)
+            );
+            return null;
+        }
+
         return null;
     }
 

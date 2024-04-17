@@ -1,12 +1,14 @@
 import io;
 
 class Fac {
-    public static void main() {
+    public static void main(String[] yo) {
 
     }
 
     public int booleanTest(boolean c, int d){
         boolean a;
-        return 0;
+        return 2;
+        return 3;
+        a = true;
     }
 }
