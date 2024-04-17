@@ -7,6 +7,8 @@ import pt.up.fe.specs.util.SpecsIo;
 
 import java.util.Collections;
 
+import static org.junit.Assert.assertEquals;
+
 public class AppTest {
 
     static String getResource(String filename) {
@@ -20,6 +22,8 @@ public class AppTest {
 
     @Test
     public void testFull() {
+        // TODO: To remove
+        assertEquals(true, true);
         TestUtils.noErrors(TestUtils.backend(getResource("App1.jmm"), Collections.emptyMap()));
     }
 
