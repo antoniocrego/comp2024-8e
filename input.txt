@@ -6,9 +6,6 @@ class Fac {
     }
 
     public int booleanTest(boolean c, int d){
-        boolean a;
-        return 2;
-        return 3;
-        a = true;
+        return [1,2,3];
     }
 }
