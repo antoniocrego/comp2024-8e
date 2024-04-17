@@ -66,9 +66,9 @@ public class ParamCheck extends AnalysisVisitor {
             var methodVariable = funcCall.getChild(0).get("name");
             var methodName = funcCall.get("id");
             Type methodCallerType = new Type("", false);
-            var megaTable = new ArrayList<>(table.getFields());
+            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
             megaTable.addAll(table.getParameters(currentMethod));
-            megaTable.addAll(table.getLocalVariables(currentMethod));
+            megaTable.addAll(table.getFields());
 
             for (var element : megaTable){
                 if (element.getName().equals(methodVariable)){
@@ -112,7 +112,7 @@ public class ParamCheck extends AnalysisVisitor {
                     );
                     return null;
                 }
-                if(givenParameters.getNumChildren()>methodParameters.size()){ // could be key for varargs
+                if(givenParameters.getNumChildren()>methodParameters.size()){
                     if (methodParameters.get(methodParameters.size()-1).getName().equals("int...")){
                         for (int i = methodParameters.size()-1; i<givenParameters.getNumChildren(); i++){
                             Type givenArgType = new Type("",false);

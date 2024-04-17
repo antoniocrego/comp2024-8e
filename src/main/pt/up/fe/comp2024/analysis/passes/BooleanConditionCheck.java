@@ -40,9 +40,12 @@ public class BooleanConditionCheck extends AnalysisVisitor {
 
         try{
             var condition = booleanExpr.getChild(0);
-            var megaTable = new ArrayList<>(table.getFields());
+            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
             megaTable.addAll(table.getParameters(currentMethod));
-            megaTable.addAll(table.getLocalVariables(currentMethod));
+            megaTable.addAll(table.getFields());
+            while (condition.getKind().equals(Kind.PAREN_EXPR.toString())){
+                condition = condition.getChild(0);
+            }
             if (condition.getKind().equals(Kind.VAR_REF_EXPR.toString())){
                 var varRefName = condition.get("name");
                 for (var element : megaTable){
