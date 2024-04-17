@@ -1,6 +1,8 @@
 import io;
 class Fac {
     public int booleanTest(){
+        int... a;
+        int a;
         if (!true && 2){
 
         }
