@@ -66,7 +66,7 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                 );
             }
             var mainParams = table.getParameters("main");
-            if (!(mainParams.size()==1 || mainParams.get(0).getType().isArray() || mainParams.get(0).getType().getName().equals("String"))){
+            if (mainParams.size()!=1 || !mainParams.get(0).getType().isArray() || !mainParams.get(0).getType().getName().equals("String")){
                 var message = "Invalid parameters for main method, expected single parameter of type String array";
                 addReport(Report.newError(
                         Stage.SEMANTIC,
