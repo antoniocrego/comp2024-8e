@@ -1,12 +1,8 @@
 import io;
 
 class Fac {
-    public int booleanTest(boolean c, int d){
+    public int booleanTest(boolean d, int d){
         boolean a;
         return 0;
-    }
-
-    public boolean booleanTest(boolean c, int... d, int a){
-
     }
 }

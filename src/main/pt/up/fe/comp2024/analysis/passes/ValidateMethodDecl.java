@@ -14,6 +14,8 @@ import pt.up.fe.specs.util.SpecsCheck;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Checks if the type of the expression in a return statement is compatible with the method return type.
@@ -49,6 +51,24 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                     null)
             );
             currentMethod = null;
+            return null;
+        }
+
+        Map<String, Long> parameterCounts = table.getParameters(currentMethod).stream()
+                .map(Symbol::getName) // Extract parameter names
+                .collect(Collectors.groupingBy(name -> name, Collectors.counting())); // Count occurrences
+
+        boolean hasDuplicates = parameterCounts.values().stream().anyMatch(count -> count > 1);
+
+        if (hasDuplicates) {
+            var message = String.format("Method '%s' declared with repeated parameters", currentMethod);
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(method),
+                    NodeUtils.getColumn(method),
+                    message,
+                    null)
+            );
             return null;
         }
 
