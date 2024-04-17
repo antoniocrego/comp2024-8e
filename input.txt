@@ -1,14 +1,24 @@
 import io;
-import Quicksort;
 
-class CompileBasic{
+class MyClass {
 
-    public int method1() {
+
+    public static void main(String[] args) {
+
         int a;
-        a = 1 + 1 - 2;
+        int b;
 
-        return a;
+        a = 1;
+        b = 2;
+
+        io.println(a+b); // 3
+
+
+        io.println(1+2*3); // 7
+        io.println(1+2*3+5); // 12
+
+
     }
+
+
 }
-
-
