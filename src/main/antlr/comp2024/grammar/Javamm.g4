@@ -42,7 +42,7 @@ program
     ;
 
 importDecl
-    : IMPORT name=ID('.'ID)* ';'
+    : IMPORT name+=ID('.'name+=ID)* ';'
     ;
 
 classDecl

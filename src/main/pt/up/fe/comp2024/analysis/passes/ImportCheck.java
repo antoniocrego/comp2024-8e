@@ -33,11 +33,11 @@ public class ImportCheck extends AnalysisVisitor {
     private Void visitImportDecl(JmmNode importDecl, SymbolTable table){
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         long occurrences = table.getImports().stream()
-                .filter(importt -> importt.equals(importDecl.get("name")))
+                .filter(importt -> importt.equals(importDecl.get("ID")))
                 .count();
 
         if (occurrences>1){
-            var message = String.format("Importing class '%s' multiple times", importDecl.get("name"));
+            var message = String.format("Importing class '%s' multiple times", importDecl.get("ID"));
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(importDecl),

@@ -40,7 +40,7 @@ public class JmmSymbolTableBuilder {
 
     private static List<String> buildImports(JmmNode root){
         var importDeclarations = root.getChildren(Kind.IMPORT_DECL);
-        return importDeclarations.stream().map(node -> node.get("name")).toList();
+        return importDeclarations.stream().map(node -> node.get("ID")).toList();
 
     }
    private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
