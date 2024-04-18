@@ -48,7 +48,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
             return null;
         }
 
-        if (table.getImports().contains(varRefName)) return null;
+        if (varRefExpr.getParent().getKind().equals(Kind.FUNC_CALL.toString()) && table.getImports().contains(varRefName)) return null;
 
         // Var is a parameter, return
         if (table.getParameters(currentMethod).stream()

@@ -49,7 +49,7 @@ public class JasminGenerator {
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(CallInstruction.class, this::generateCall);
-        generators.put(FieldInstruction.class, this::generateField);
+        generators.put(FieldInstruction.class, this::generateFieldInstruction);
     }
 
     public List<Report> getReports() {
@@ -74,10 +74,14 @@ public class JasminGenerator {
         var superClass = classUnit.getSuperClass() == null || classUnit.getSuperClass().equals("Object")
                 ? "java/lang/Object"
                 : classUnit.getSuperClass();
+        var fields = classUnit.getFields().stream()
+                .map(this::getFieldSignature)
+                .collect(Collectors.joining());
 
         code
                 .append(".class ").append(className).append(NL)
                 .append(".super ").append(superClass).append(NL)
+                .append(fields)
                 .append(".method public <init>()V").append(NL)
                 .append(TAB).append("aload_0").append(NL)
                 .append(TAB).append("invokespecial %s/<init>()V".formatted(superClass)).append(NL)
@@ -99,7 +103,6 @@ public class JasminGenerator {
 
         return code.toString();
     }
-
 
     private String generateMethod(Method method) {
 
@@ -143,8 +146,17 @@ public class JasminGenerator {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
-            code.append(instCode);
+            code
+                    .append(instCode)
+                    .append(
+                            inst.getInstType() == InstructionType.CALL
+                                    &&
+                                    ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
+                                    ? "pop" + NL
+                                    : ""
+                    );
         }
+
 
         code.append(".end method\n");
 
@@ -271,6 +283,8 @@ public class JasminGenerator {
                         .append(className)
                         .append("/<init>()")
                         .append(getType(callInst.getReturnType()))
+                        .append(NL)
+                        .append("pop")
                         .append(NL);
             }
             case NEW -> {
@@ -278,6 +292,8 @@ public class JasminGenerator {
                 code
                         .append("new ")
                         .append(caller.getName())
+                        .append(NL)
+                        .append("dup")
                         .append(NL);
             }
             default -> throw new NotImplementedException(callInst.getClass());
@@ -286,7 +302,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateField(FieldInstruction fieldInstruction) {
+    private String generateFieldInstruction(FieldInstruction fieldInstruction) {
         StringBuilder code = new StringBuilder();
 
         switch (fieldInstruction.getInstType()) {
@@ -379,6 +395,22 @@ public class JasminGenerator {
         }
 
         return instruction + NL;
+    }
+
+    private String getFieldSignature(Field field) {
+        return ".field " +
+                switch (field.getFieldAccessModifier()) {
+                    case PUBLIC -> "public ";
+                    case PRIVATE -> "private ";
+                    case PROTECTED -> "protected ";
+                    case DEFAULT -> "";
+                } +
+                (field.isFinalField() ? "final " : "") +
+                (field.isStaticField() ? "static " : "") +
+                field.getFieldName() +
+                " " +
+                getType(field.getFieldType()) +
+                NL;
     }
 
     private String getRegIndex(String name) {

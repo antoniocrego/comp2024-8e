@@ -1,10 +1,15 @@
-import io;
-class Fac {
-	public int compFac(int num){
+import B;
+import C;
 
-  	}
+class A extends B{
+    int b;
 
-	public static void main(String[] args){
- 	      io.println(new Fac().compFac(10));
-	}
-}
+    public int funk(B c){
+        return 1;
+    }
+
+    public int foo(){
+        C c;
+        this.funk(c);
+        return 0;
+    }
