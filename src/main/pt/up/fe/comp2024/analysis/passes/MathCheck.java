@@ -84,7 +84,7 @@ public class MathCheck extends AnalysisVisitor {
                 }
                 found1 = true;
             }
-            else if ((!binaryExpr.getChild(0).getKind().equals(Kind.INTEGER_LITERAL.toString()) || binaryExpr.getChild(0).getKind().equals(Kind.ARRAY_ACCESS.toString()) || binaryExpr.getChild(0).getKind().equals(Kind.LENGTH_EXPR.toString()))){
+            else if (!(binaryExpr.getChild(0).getKind().equals(Kind.INTEGER_LITERAL.toString()) || binaryExpr.getChild(0).getKind().equals(Kind.ARRAY_ACCESS.toString()) || binaryExpr.getChild(0).getKind().equals(Kind.LENGTH_EXPR.toString()))){
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(binaryExpr),

@@ -5,8 +5,9 @@ class Simple {
 
     public int foo(){
         int[] a;
+        int b;
         a = [1,2,3];
-        a[2] = 4;
+        b = a[1] + a[2];
         return 0;
     }
 
