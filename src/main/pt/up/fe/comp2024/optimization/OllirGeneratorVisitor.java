@@ -273,7 +273,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
     private String visitImportDecl(JmmNode node, Void unused){
-        return "import " + node.get("name") + ";" + NL;
+        return "import " + String.join(".", node.getObjectAsList("name", String.class)) + END_STMT;
     }
 
     private String visitProgram(JmmNode node, Void unused) {
