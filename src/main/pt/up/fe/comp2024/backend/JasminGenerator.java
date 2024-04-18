@@ -143,14 +143,16 @@ public class JasminGenerator {
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
-
-            code.append(instCode);
-
-            if (inst.getInstType() == InstructionType.CALL &&
-                    ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
-            ) {
-                code.append("pop").append(NL);
-            }
+            
+            code
+                    .append(instCode)
+                    .append(
+                            inst.getInstType() == InstructionType.CALL
+                                    &&
+                                    ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
+                                    ? "pop" + NL
+                                    : ""
+                    );
         }
 
 
