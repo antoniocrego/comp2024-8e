@@ -77,7 +77,17 @@ public class AssignmentCheck extends AnalysisVisitor {
                 break;
             }
         }
-        if (elementType.isEmpty()) return null;
+        if (elementType.isEmpty()){
+            var message = "Assignment to undefined variable or non-variable, such as a class.";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(assign),
+                    NodeUtils.getColumn(assign),
+                    message,
+                    null)
+            );
+            return null;
+        }
         JmmNode assignExpr = assign.getChild(1);
         while (assignExpr.getKind().equals(Kind.PAREN_EXPR.toString())){
             assignExpr = assign.getChild(0);
