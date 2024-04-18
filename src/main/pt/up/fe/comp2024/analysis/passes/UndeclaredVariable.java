@@ -50,12 +50,6 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
         if (table.getImports().contains(varRefName)) return null;
 
-        // Var is a field, return
-        if (table.getFields().stream()
-                .anyMatch(param -> param.getName().equals(varRefName))) {
-            return null;
-        }
-
         // Var is a parameter, return
         if (table.getParameters(currentMethod).stream()
                 .anyMatch(param -> param.getName().equals(varRefName))) {
@@ -65,6 +59,22 @@ public class UndeclaredVariable extends AnalysisVisitor {
         // Var is a declared variable, return
         if (table.getLocalVariables(currentMethod).stream()
                 .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
+            return null;
+        }
+
+        // Var is a field, return
+        if (table.getFields().stream()
+                .anyMatch(param -> param.getName().equals(varRefName))) {
+            if (currentMethod.equals("main")){
+                var message = "Call to class field on static method 'main'.";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(varRefExpr),
+                        NodeUtils.getColumn(varRefExpr),
+                        message,
+                        null)
+                );
+            }
             return null;
         }
 
