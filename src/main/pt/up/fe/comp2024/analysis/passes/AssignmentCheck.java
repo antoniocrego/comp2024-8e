@@ -45,6 +45,14 @@ public class AssignmentCheck extends AnalysisVisitor {
             if (assign.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
                 varRefName = assign.getChild(0).get("name");
             } else {
+                var message = "Assignment to non-variable on the left hand side.";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(assign),
+                        NodeUtils.getColumn(assign),
+                        message,
+                        null)
+                );
                 return null;
             }
 
