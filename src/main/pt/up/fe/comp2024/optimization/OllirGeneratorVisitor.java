@@ -67,18 +67,17 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder();
 
-        //TODO (thePeras) : tmp0.i32 :=.i32 getfield(this, field_1.i32).i32;
-
         var name = node.getJmmChild(0).get("name");
         for(Symbol field : table.getFields()){
             if(field.getName().equals(name)){
+                var rhs = exprVisitor.visit(node.getJmmChild(1));
+                code.append(rhs.getComputation());
                 code.append("putfield(this, ");
                 code.append(name);
                 Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
                 String typeString = OptUtils.toOllirType(thisType);
                 code.append(typeString);
                 code.append(", ");
-                var rhs = exprVisitor.visit(node.getJmmChild(1));
                 code.append(rhs.getCode());
                 code.append(").V;\n");
 
