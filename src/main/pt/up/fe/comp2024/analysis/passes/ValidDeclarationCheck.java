@@ -44,6 +44,18 @@ public class ValidDeclarationCheck extends AnalysisVisitor {
             return null;
         }
 
+        if (table.getImports().contains(varDecl.get("name"))){
+            var message = String.format("Definition of variable with name of imported class '%s'", varDecl.get("name"));
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(varDecl),
+                    NodeUtils.getColumn(varDecl),
+                    message,
+                    null)
+            );
+            return null;
+        }
+
         if(currentMethod==null) {
             long occurrences = table.getFields().stream()
                     .filter(field -> field.getName().equals(varDecl.get("name")))

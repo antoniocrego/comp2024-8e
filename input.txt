@@ -4,10 +4,7 @@ import Simple.a;
 class Simple {
 
     public int foo(){
-        int[] a;
-        int b;
-        a = [1,2,3];
-        b = a[1] + a[2];
+        Simple a;
         return 0;
     }
 
