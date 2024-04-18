@@ -3,12 +3,12 @@ import Simple.a;
 
 class O {
 
-    public int funk(int[] b){
+    public int funk(int... b){
         return 1;
     }
 
     public int foo(){
-        this.funk([1,true,3]);
+        this.funk([1,2,3]);
         return 0;
     }
 

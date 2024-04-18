@@ -48,7 +48,7 @@ public class TypeUtils {
             case VAR_REF_EXPR -> getVarExprType(expr, table);
             case INTEGER_LITERAL, ARRAY_ACCESS -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN,BOOLEAN_EXPR,COMPARISON_EXPR,UNARY_OP -> new Type("boolean",false);
-            case ARRAY_TYPE, NEW_ARRAY -> new Type(expr.getChild(0).get("id"), true);
+            case ARRAY_TYPE, NEW_ARRAY,ARRAY_INIT -> new Type(INT_TYPE_NAME, true);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
     }
