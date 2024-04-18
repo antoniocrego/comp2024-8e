@@ -1,13 +1,14 @@
 import B;
 
 class A extends B{
+    int b;
 
     public int funk(int... c){
         return 1;
     }
 
     public int foo(){
-        C = 2;
+        this = 2;
         return 0;
     }
 
