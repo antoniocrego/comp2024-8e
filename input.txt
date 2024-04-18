@@ -1,13 +1,17 @@
-import java.time.Instant;
-class PrazerFactory {
-        Instant b;
-        int c;
-        Instant d;
+import B;
 
-        public int useTime(){
-           c = 10;
-           d = Instant.now();
-           return b.getMilis();
-        }
+class A extends B{
+
+    public int funk(int... c){
+        return 1;
+    }
+
+    public int foo(){
+        int[] a;
+        int b;
+        boolean c;
+        B = [1,2];
+        return 0;
+    }
 
 }
