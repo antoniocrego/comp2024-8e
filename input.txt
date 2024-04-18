@@ -1,17 +1,10 @@
-import B;
+import io;
+class Fac {
+	public int compFac(int num){
 
-class A extends B{
+  	}
 
-    public int funk(int... c){
-        return 1;
-    }
-
-    public int foo(){
-        int[] a;
-        int b;
-        boolean c;
-        B = [1,2];
-        return 0;
-    }
-
+	public static void main(String[] args){
+ 	      io.println(new Fac().compFac(10));
+	}
 }

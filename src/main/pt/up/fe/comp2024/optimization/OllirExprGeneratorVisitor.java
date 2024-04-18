@@ -150,6 +150,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         var headNode = node.getChild(0);
         String objectName = getObjectName(headNode);
+        String objectType = getObjectType(headNode);
 
         var methodCalledName = node.get("id");
 
@@ -208,6 +209,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             }
         }
 
+        if(objectType.equals(NEW_CLASS.getNodeName())){
+            var visitedHead = visit(headNode);
+            computation.append(visitedHead.getComputation());
+            objectName = visitedHead.getCode();
+        }
+
         if(isStatic){
             invoke = "invokestatic";
         }
@@ -226,9 +233,25 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         if(node.getChildren().size() > 1){
             for(JmmNode argNode : node.getChild(1).getChildren()){
                 var visitedArgNode = visit(argNode);
-                computation.append(visitedArgNode.getComputation());
                 code.append(", ");
-                code.append(visitedArgNode.getCode());
+                if(argNode.getKind().equals(FUNC_CALL.getNodeName())){
+                    computation.append(visitedArgNode.getComputation());
+                    String tempUsed = OptUtils.getTemp();
+                    Type thisType = TypeUtils.getExprType(argNode.getChild(1).getChild(0), table);
+                    String type = OptUtils.toOllirType(thisType);
+
+                    String tempName = tempUsed + type;
+                    computation.append(tempName);
+                    computation.append(SPACE);
+                    computation.append(ASSIGN);
+                    computation.append(type);
+                    computation.append(SPACE);
+                    computation.append(visitedArgNode.getCode());
+                    code.append(tempName);
+                }else{
+                    computation.append(visitedArgNode.getComputation());
+                    code.append(visitedArgNode.getCode());
+                }
             }
         }
 
@@ -267,6 +290,17 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             return new OllirExprResult(newCode, computation);
         }
 
+        var funcStm = node.getAncestor(FUNC_CALL);
+        if(funcStm.isPresent()){
+            Type thisType = TypeUtils.getExprType(node.getJmmChild(1).getJmmChild(0), table);
+            String typeString = OptUtils.toOllirType(thisType);
+
+            code.append(typeString);
+            code.append(END_STMT);
+
+            return new OllirExprResult(code.toString(), computation);
+        }
+
         code.append(".V");
         code.append(END_STMT);
 
@@ -281,6 +315,14 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         if(node.getKind().equals(NEW_CLASS.getNodeName())) return node.get("id");
 
         return node.get("name");
+    }
+
+    String getObjectType(JmmNode node){
+        if(node.getKind().equals(PAREN_EXPR.getNodeName())){
+            return getObjectType(node.getChild(0));
+        }
+
+        return node.getKind();
     }
 
     /**
