@@ -79,7 +79,7 @@ public class JasminGenerator {
                 .collect(Collectors.joining());
 
         code
-                .append(".class ").append(className).append(NL)
+                .append(".class ").append(getClassAccessModifier(classUnit)).append(className).append(NL)
                 .append(".super ").append(superClass).append(NL)
                 .append(fields)
                 .append(".method public <init>()V").append(NL)
@@ -245,11 +245,10 @@ public class JasminGenerator {
                 for (var param : callInst.getArguments()) {
                     params.append(generateLoadInstruction(param));
                 }
-                //                        .append(getFuncPath(caller.getName()))
                 code
                         .append(generateLoadInstruction(caller))
                         .append(params)
-                        .append("invokevirtual ").append(callerClass).append("/")
+                        .append("invokevirtual ").append(getFullPath(callerClass)).append("/")
                         .append(formatMethodName(method.getLiteral()))
                         .append("(").append(paramTypes).append(")")
                         .append(getType(callInst.getReturnType()))
@@ -267,7 +266,8 @@ public class JasminGenerator {
 
                 code
                         .append("invokestatic ")
-                        .append(getFuncPath(caller.getName()))
+                        .append(getFullPath(caller.getName()))
+                        .append("/")
                         .append(formatMethodName(method.getLiteral()))
                         .append("(").append(paramTypes).append(")")
                         .append(getType(callInst.getReturnType()))
@@ -352,12 +352,12 @@ public class JasminGenerator {
         return signature.toString();
     }
 
-    private String getFuncPath(String className) {
+    private String getFullPath(String className) {
         if (className.equals("this"))
             return ollirResult.getOllirClass().getClassName() + "/";
         for (String importPath : ollirResult.getOllirClass().getImports())
             if (importPath.endsWith(className))
-                return importPath.replace('.', '/') + "/";
+                return importPath.replace('.', '/');
         return className;
     }
 
@@ -413,6 +413,19 @@ public class JasminGenerator {
                 NL;
     }
 
+    private String getClassAccessModifier(ClassUnit classUnit) {
+        StringBuilder code = new StringBuilder();
+        switch (classUnit.getClassAccessModifier()) {
+            case PUBLIC -> code.append("public ");
+            case PRIVATE -> code.append("private ");
+            case PROTECTED -> code.append("protected ");
+            case DEFAULT -> {}
+        };
+        code.append(classUnit.isFinalClass() ? "final " : "");
+        code.append(classUnit.isStaticClass() ? "abstract " : "");
+        return code.toString();
+    }
+
     private String getRegIndex(String name) {
         if (name.equals("THIS")) return "_0";
         var reg = currentMethod.getVarTable().get(name).getVirtualReg();
@@ -429,7 +442,7 @@ public class JasminGenerator {
             }
             case OBJECTREF, CLASS -> {
                 ClassType classType = (ClassType) type;
-                yield "L" + classType.getName();
+                yield "L" + getFullPath(classType.getName()) + ";";
             }
             case THIS -> null;
             case STRING -> "Ljava/lang/String;";
