@@ -1,15 +1,12 @@
-import B;
-import C;
+import io;
 
-class A extends B{
-    int b;
+class Simple {
 
-    public int funk(B c){
-        return 1;
+    public int add(int a, int b){
+
     }
 
-    public int foo(){
-        C c;
-        this.funk(c);
-        return 0;
+    public static void main(String[] args) {
+        io.println(new Simple().add(10, 3) + 3);
     }
+}

@@ -97,13 +97,37 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         String resOllirType = OptUtils.toOllirType(resType);
         String code = OptUtils.getTemp() + resOllirType;
 
+        String lhsCode = lhs.getCode();
+        if(lhs.getCode().contains("invokevirtual")){
+            String type = OptUtils.getTemp() + resOllirType;
+            computation.append(type);
+            computation.append(SPACE);
+            computation.append(ASSIGN);
+            computation.append(resOllirType);
+            computation.append(SPACE);
+            computation.append(lhs.getCode());
+            lhsCode = type;
+        }
+
+        String rhsCode = rhs.getCode();
+        if(rhs.getCode().contains("invokevirtual")){
+            String type = OptUtils.getTemp() + resOllirType;
+            computation.append(type);
+            computation.append(SPACE);
+            computation.append(ASSIGN);
+            computation.append(resOllirType);
+            computation.append(SPACE);
+            computation.append(rhs.getCode());
+            rhsCode = type;
+        }
+
         computation.append(code).append(SPACE)
                 .append(ASSIGN).append(resOllirType).append(SPACE)
-                .append(lhs.getCode()).append(SPACE);
+                .append(lhsCode).append(SPACE);
 
         Type type = TypeUtils.getExprType(node, table);
         computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
-                .append(rhs.getCode()).append(END_STMT);
+                .append(rhsCode).append(END_STMT);
 
         return new OllirExprResult(code, computation);
     }
@@ -234,7 +258,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             for(JmmNode argNode : node.getChild(1).getChildren()){
                 var visitedArgNode = visit(argNode);
                 code.append(", ");
-                if(argNode.getKind().equals(FUNC_CALL.getNodeName())){
+                if(argNode.getKind().equals(FUNC_CALL.getNodeName())) {
                     computation.append(visitedArgNode.getComputation());
                     String tempUsed = OptUtils.getTemp();
                     Type thisType = TypeUtils.getExprType(argNode.getChild(1).getChild(0), table);
