@@ -7,10 +7,7 @@ class A extends B{
     }
 
     public int foo(){
-        int[] a;
-        int b;
-        boolean c;
-        B = [1,2];
+        C = 2;
         return 0;
     }
 
