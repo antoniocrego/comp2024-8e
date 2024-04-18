@@ -42,7 +42,7 @@ public class AssignmentCheck extends AnalysisVisitor {
 
         try {
             String varRefName;
-            if (assign.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+            if (assign.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString()) || assign.getChild(0).getKind().equals(Kind.ARRAY_ACCESS.toString())) {
                 varRefName = assign.getChild(0).get("name");
             } else {
                 var message = "Assignment to non-variable on the left hand side.";
