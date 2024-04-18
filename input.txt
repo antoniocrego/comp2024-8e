@@ -1,4 +1,4 @@
-import Simple;
+import Simple.a;
 
 
 class Simple {

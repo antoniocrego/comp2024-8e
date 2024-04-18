@@ -46,7 +46,7 @@ public class ImportCheck extends AnalysisVisitor {
                     null)
             );
         }
-
+        /*
         if (importDecl.get("name").equals(table.getClassName())){
             var message = String.format("Importing class '%s' with another definition in file", importDecl.get("name"));
             addReport(Report.newError(
@@ -57,6 +57,7 @@ public class ImportCheck extends AnalysisVisitor {
                     null)
             );
         }
+         */
 
         return null;
     }
