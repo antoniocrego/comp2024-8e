@@ -281,16 +281,6 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                                 return null;
                             }
                         }
-                    } else {
-                        var message = String.format("Call to function '%s' with too many parameters.", methodName);
-                        addReport(Report.newError(
-                                Stage.SEMANTIC,
-                                NodeUtils.getLine(funcCall),
-                                NodeUtils.getColumn(funcCall),
-                                message,
-                                null)
-                        );
-                        return null;
                     }
                 }
                 if (!methodParameters.get(0).getType().getName().equals("int...")) {
