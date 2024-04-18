@@ -211,7 +211,7 @@ public class ValidateMethodDecl extends AnalysisVisitor {
 
         var givenParameters = funcCall.getChild(funcCall.getNumChildren()-1);
         if (!givenParameters.getKind().equals(Kind.FUNC_ARGS.toString()) && !methodParameters.isEmpty()){
-            if (methodParameters.get(methodParameters.size()-1).getType().getName().equals("int...")) return null;
+            if (givenParameters.getNumChildren()==methodParameters.size()-1 && methodParameters.get(methodParameters.size()-1).getType().getName().equals("int...")) return null;
             var message = String.format("Call to function '%s' without parameters.", methodName);
             addReport(Report.newError(
                     Stage.SEMANTIC,
@@ -297,6 +297,17 @@ public class ValidateMethodDecl extends AnalysisVisitor {
             if (!methodParameters.get(0).getType().getName().equals("int...")) {
                 var exploreLength = methodParameters.size();
                 if (methodParameters.get(methodParameters.size()-1).getType().getName().equals("int...")) exploreLength = exploreLength-1;
+                if (exploreLength>givenParameters.getNumChildren()){
+                    var message = String.format("Call to function '%s' with insufficient parameters.", methodName);
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(funcCall),
+                            NodeUtils.getColumn(funcCall),
+                            message,
+                            null)
+                    );
+                    return null;
+                }
                 for (int i = 0; i < exploreLength; i++) {
                     Type givenArgType = new Type("", false);
                     Type expectedArgType = methodParameters.get(i).getType();

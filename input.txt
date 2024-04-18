@@ -3,7 +3,7 @@ import Simple.a;
 
 class O {
 
-    public int funk(int... b){
+    public int funk(int c, int d){
         return 1;
     }
 
