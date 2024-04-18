@@ -43,6 +43,17 @@ public class ValidDeclarationCheck extends AnalysisVisitor {
             );
             return null;
         }
+        if (varDecl.getChild(0).getKind().equals(Kind.CUSTOM_TYPE.toString()) && !(table.getClassName().equals(varDecl.getChild(0).get("id"))||table.getImports().contains(varDecl.getChild(0).get("id")))){
+            var message = String.format("Unknown class/type utilized for variable declaration '%s'", varDecl.getChild(0).getKind());
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(varDecl),
+                    NodeUtils.getColumn(varDecl),
+                    message,
+                    null)
+            );
+            return null;
+        }
 
         if (table.getImports().contains(varDecl.get("name"))){
             var message = String.format("Definition of variable with name of imported class '%s'", varDecl.get("name"));

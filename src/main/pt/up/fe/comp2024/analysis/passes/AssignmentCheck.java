@@ -164,22 +164,37 @@ public class AssignmentCheck extends AnalysisVisitor {
             return null;
         } else if (assignExpr.getKind().equals(Kind.VAR_REF_EXPR.toString())) {
             var secondName = assignExpr.get("name");
-            for (var element : megaTable) {
-                if (element.getName().equals(secondName)) {
-                    if (!element.getType().getName().equals(elementType)) {
-                        if (!(elementType.equals(table.getSuper()) && element.getType().getName().equals(table.getClassName())) && !(new HashSet<>(table.getImports()).containsAll(Arrays.asList(elementType, element.getType().getName())) && !(elementType.equals(table.getClassName()) && element.getType().getName().equals(table.getSuper())))) {
-                            var message = String.format("Assignment of type '%s' to variable '%s' of type '%s'.", element.getType().getName(), varRefName, elementType);
-                            addReport(Report.newError(
-                                    Stage.SEMANTIC,
-                                    NodeUtils.getLine(assign),
-                                    NodeUtils.getColumn(assign),
-                                    message,
-                                    null)
-                            );
-                            return null;
+            if (secondName.equals("this")){
+                if (!(elementType.equals(table.getClassName())||elementType.equals(table.getSuper()))){
+                    var message = String.format("Assignment of type '%s' to variable '%s' of type '%s'.", table.getClassName(), varRefName, elementType);
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(assign),
+                            NodeUtils.getColumn(assign),
+                            message,
+                            null)
+                    );
+                    return null;
+                }
+            }
+            else{
+                for (var element : megaTable) {
+                    if (element.getName().equals(secondName)) {
+                        if (!element.getType().getName().equals(elementType)) {
+                            if (!(elementType.equals(table.getSuper()) && element.getType().getName().equals(table.getClassName())) && !(new HashSet<>(table.getImports()).containsAll(Arrays.asList(elementType, element.getType().getName())) && !(elementType.equals(table.getClassName()) && element.getType().getName().equals(table.getSuper())))) {
+                                var message = String.format("Assignment of type '%s' to variable '%s' of type '%s'.", element.getType().getName(), varRefName, elementType);
+                                addReport(Report.newError(
+                                        Stage.SEMANTIC,
+                                        NodeUtils.getLine(assign),
+                                        NodeUtils.getColumn(assign),
+                                        message,
+                                        null)
+                                );
+                                return null;
+                            }
                         }
+                        break;
                     }
-                    break;
                 }
             }
         }
