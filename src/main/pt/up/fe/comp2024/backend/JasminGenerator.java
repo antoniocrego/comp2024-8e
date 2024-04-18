@@ -96,17 +96,6 @@ public class JasminGenerator {
             }
 
             code.append(generators.apply(method));
-
-//            List<Instruction> callMethods = method.getInstructions().stream().filter(inst -> inst.getInstType() == InstructionType.CALL).toList();
-//            for (Instruction callInst : callMethods) {
-//                CallInstruction callInstruction = (CallInstruction) callInst;
-//                if (callInstruction.getInvocationType() == CallType.invokespecial || ((CallInstruction) callInst).getReturnType().getTypeOfElement() != ElementType.VOID) {
-//                    code.append("pop").append(NL);
-//                    break;
-//                }
-//            }
-
-
         }
 
         return code.toString();
@@ -156,7 +145,14 @@ public class JasminGenerator {
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
             code.append(instCode);
+
+            if (inst.getInstType() == InstructionType.CALL &&
+                    ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
+            ) {
+                code.append("pop").append(NL);
+            }
         }
+
 
         code.append(".end method\n");
 
