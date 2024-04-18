@@ -12,9 +12,7 @@ import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -315,10 +313,13 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                     Type expectedArgType = methodParameters.get(i).getType();
                     if (givenParameters.getChild(i).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
                         var varRefName = givenParameters.getChild(i).get("name");
-                        for (var element : megaTable) {
-                            if (element.getName().equals(varRefName)) {
-                                givenArgType = element.getType();
-                                break;
+                        if (varRefName.equals("this")) givenArgType = new Type(table.getClassName(), false);
+                        else{
+                            for (var element : megaTable) {
+                                if (element.getName().equals(varRefName)) {
+                                    givenArgType = element.getType();
+                                    break;
+                                }
                             }
                         }
                     } else if (givenParameters.getChild(i).getKind().equals(Kind.FUNC_CALL.toString())) { // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
@@ -340,19 +341,21 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                         else givenArgType = table.getReturnType(methodNameInner);
                     } else givenArgType = TypeUtils.getExprType(givenParameters.getChild(i), table);
                     if (!givenArgType.equals(expectedArgType)) {
-                        var message = "Call to function '%s' with invalid parameter type '%s'";
-                        if (givenArgType.isArray()) message += " array";
-                        message += ", expected '%s'";
-                        if (expectedArgType.isArray()) message += " array";
-                        message = String.format(message, methodName, givenArgType.getName(), expectedArgType.getName());
-                        addReport(Report.newError(
-                                Stage.SEMANTIC,
-                                NodeUtils.getLine(funcCall),
-                                NodeUtils.getColumn(funcCall),
-                                message,
-                                null)
-                        );
-                        return null;
+                        if (!(expectedArgType.getName().equals(table.getSuper()) && givenArgType.getName().equals(table.getClassName())) && !(new HashSet<>(table.getImports()).containsAll(Arrays.asList(givenArgType.getName(), expectedArgType.getName())) && !(expectedArgType.getName().equals(table.getClassName()) && givenArgType.getName().equals(table.getSuper())))) {
+                            var message = "Call to function '%s' with invalid parameter type '%s'";
+                            if (givenArgType.isArray()) message += " array";
+                            message += ", expected '%s'";
+                            if (expectedArgType.isArray()) message += " array";
+                            message = String.format(message, methodName, givenArgType.getName(), expectedArgType.getName());
+                            addReport(Report.newError(
+                                    Stage.SEMANTIC,
+                                    NodeUtils.getLine(funcCall),
+                                    NodeUtils.getColumn(funcCall),
+                                    message,
+                                    null)
+                            );
+                            return null;
+                        }
                     }
                 }
             }
