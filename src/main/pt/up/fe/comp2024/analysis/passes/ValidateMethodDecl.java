@@ -224,50 +224,52 @@ public class ValidateMethodDecl extends AnalysisVisitor {
         }
         else if (givenParameters.getKind().equals(Kind.FUNC_ARGS.toString())) {
             if (!methodParameters.isEmpty() && methodParameters.get(methodParameters.size()-1).getType().getName().equals("int...")) {
-                if (methodParameters.size()<=givenParameters.getNumChildren()) {
-                    for (int i = methodParameters.size() - 1; i < givenParameters.getNumChildren(); i++) {
-                        Type givenArgType = new Type("", false);
-                        Type expectedArgType = new Type("int", false);
-                        if (givenParameters.getChild(i).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-                            var varRefName = givenParameters.getChild(i).get("name");
-                            for (var element : megaTable) {
-                                if (element.getName().equals(varRefName)) {
-                                    givenArgType = element.getType();
-                                    break;
-                                }
-                            }
-                        } else if (givenParameters.getChild(i).getKind().equals(Kind.FUNC_CALL.toString())) { // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
-                            var methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
-                            var methodNameInner = givenParameters.getChild(i).get("id");
-                            Type methodCallerTypeInner = new Type("", false);
-                            if (methodVariableInner.equals("this"))
-                                methodCallerTypeInner = new Type(table.getClassName(), false);
-                            else if (!table.getImports().contains(methodVariableInner)) {
+                if (!(methodParameters.size()==givenParameters.getNumChildren() && TypeUtils.getExprType(givenParameters.getChild(givenParameters.getNumChildren()-1),table).isArray() && TypeUtils.getExprType(givenParameters.getChild(givenParameters.getNumChildren()-1),table).getName().equals("int"))){
+                    if (methodParameters.size()<=givenParameters.getNumChildren()) {
+                        for (int i = methodParameters.size() - 1; i < givenParameters.getNumChildren(); i++) {
+                            Type givenArgType = new Type("", false);
+                            Type expectedArgType = new Type("int", false);
+                            if (givenParameters.getChild(i).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+                                var varRefName = givenParameters.getChild(i).get("name");
                                 for (var element : megaTable) {
-                                    if (element.getName().equals(methodVariableInner)) {
-                                        methodCallerTypeInner = element.getType();
+                                    if (element.getName().equals(varRefName)) {
+                                        givenArgType = element.getType();
                                         break;
                                     }
                                 }
+                            } else if (givenParameters.getChild(i).getKind().equals(Kind.FUNC_CALL.toString())) { // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
+                                var methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
+                                var methodNameInner = givenParameters.getChild(i).get("id");
+                                Type methodCallerTypeInner = new Type("", false);
+                                if (methodVariableInner.equals("this"))
+                                    methodCallerTypeInner = new Type(table.getClassName(), false);
+                                else if (!table.getImports().contains(methodVariableInner)) {
+                                    for (var element : megaTable) {
+                                        if (element.getName().equals(methodVariableInner)) {
+                                            methodCallerTypeInner = element.getType();
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (!methodCallerTypeInner.getName().equals(table.getClassName()))
+                                    givenArgType = expectedArgType;
+                                else givenArgType = table.getReturnType(methodNameInner);
+                            } else givenArgType = TypeUtils.getExprType(givenParameters.getChild(i), table);
+                            if (!givenArgType.equals(expectedArgType)) {
+                                var message = "Call to function '%s' with invalid parameter type '%s'";
+                                if (givenArgType.isArray()) message += " array";
+                                message += ", expected '%s'";
+                                if (expectedArgType.isArray()) message += " array";
+                                message = String.format(message, methodName, givenArgType.getName(), expectedArgType.getName());
+                                addReport(Report.newError(
+                                        Stage.SEMANTIC,
+                                        NodeUtils.getLine(funcCall),
+                                        NodeUtils.getColumn(funcCall),
+                                        message,
+                                        null)
+                                );
+                                return null;
                             }
-                            if (!methodCallerTypeInner.getName().equals(table.getClassName()))
-                                givenArgType = expectedArgType;
-                            else givenArgType = table.getReturnType(methodNameInner);
-                        } else givenArgType = TypeUtils.getExprType(givenParameters.getChild(i), table);
-                        if (!givenArgType.equals(expectedArgType)) {
-                            var message = "Call to function '%s' with invalid parameter type '%s'";
-                            if (givenArgType.isArray()) message += " array";
-                            message += ", expected '%s'";
-                            if (expectedArgType.isArray()) message += " array";
-                            message = String.format(message, methodName, givenArgType.getName(), expectedArgType.getName());
-                            addReport(Report.newError(
-                                    Stage.SEMANTIC,
-                                    NodeUtils.getLine(funcCall),
-                                    NodeUtils.getColumn(funcCall),
-                                    message,
-                                    null)
-                            );
-                            return null;
                         }
                     }
                 }
