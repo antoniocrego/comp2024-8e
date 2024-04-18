@@ -122,165 +122,152 @@ public class BooleanOperatorCheck extends AnalysisVisitor {
     private Void visitBooleanExpr(JmmNode booleanExpr, SymbolTable table){
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
-        try{
-            String varRefName = "";
-            String varRefName2 = "";
-            boolean found1 = false;
-            boolean found2 = false;
+        String varRefName = "";
+        String varRefName2 = "";
+        boolean found1 = false;
+        boolean found2 = false;
 
-            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
-            megaTable.addAll(table.getParameters(currentMethod));
-            megaTable.addAll(table.getFields());
+        var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
+        megaTable.addAll(table.getParameters(currentMethod));
+        megaTable.addAll(table.getFields());
 
-            if (booleanExpr.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-                varRefName = booleanExpr.getChild(0).get("name");
-            }
-            else if (booleanExpr.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
-                var methodVariable = booleanExpr.getChild(0).getChild(0).get("name");
-                var methodName = booleanExpr.getChild(0).get("id");
-                Type methodCallerType = new Type("", false);
-                if (!table.getImports().contains(methodVariable)){
-                    if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
-                    else{
-                        for (var element : megaTable) {
-                            if (element.getName().equals(methodVariable)) {
-                                methodCallerType = element.getType();
-                                break;
-                            }
-                        }
-                    }
-                    if (methodCallerType.getName().equals(table.getClassName())){
-                        var returnType = table.getReturnType(methodName);
-                        if (!returnType.getName().equals("int") || returnType.isArray()){
-                            var message = "Boolean expression with function returning '%s'";
-                            if (returnType.isArray()) message += " array";
-                            addReport(Report.newError(
-                                    Stage.SEMANTIC,
-                                    NodeUtils.getLine(booleanExpr),
-                                    NodeUtils.getColumn(booleanExpr),
-                                    String.format(message, returnType.getName()),
-                                    null)
-                            );
-                            return null;
+        if (booleanExpr.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+            varRefName = booleanExpr.getChild(0).get("name");
+        }
+        else if (booleanExpr.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
+            var methodVariable = booleanExpr.getChild(0).getChild(0).get("name");
+            var methodName = booleanExpr.getChild(0).get("id");
+            Type methodCallerType = new Type("", false);
+            if (!table.getImports().contains(methodVariable)){
+                if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+                else{
+                    for (var element : megaTable) {
+                        if (element.getName().equals(methodVariable)) {
+                            methodCallerType = element.getType();
+                            break;
                         }
                     }
                 }
-                found1 = true;
-            }
-            else if (!(booleanExpr.getChild(0).getKind().equals(Kind.BOOLEAN.toString()) || booleanExpr.getChild(0).getKind().equals(Kind.BOOLEAN_EXPR.toString()) || booleanExpr.getChild(0).getKind().equals(Kind.COMPARISON_EXPR.toString()) || booleanExpr.getChild(0).getKind().equals(Kind.UNARY_OP.toString()))){
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(booleanExpr),
-                        NodeUtils.getColumn(booleanExpr),
-                        String.format("Unexpected primitive type '%s' in boolean expression.",booleanExpr.getChild(0).getKind()),
-                        null)
-                );
-                return null;
-            }
-            else{
-                found1 = true;
-            }
-            if (booleanExpr.getChild(1).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-                varRefName2 = booleanExpr.getChild(1).get("name");
-            }
-            else if (booleanExpr.getChild(1).getKind().equals(Kind.FUNC_CALL.toString())){
-                var methodVariable = booleanExpr.getChild(1).getChild(0).get("name");
-                var methodName = booleanExpr.getChild(1).get("id");
-                Type methodCallerType = new Type("", false);
-                if (!table.getImports().contains(methodVariable)){
-                    if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
-                    else{
-                        for (var element : megaTable) {
-                            if (element.getName().equals(methodVariable)) {
-                                methodCallerType = element.getType();
-                                break;
-                            }
-                        }
-                    }
-                    if (methodCallerType.getName().equals(table.getClassName())){
-                        var returnType = table.getReturnType(methodName);
-                        if (!returnType.getName().equals("int") || returnType.isArray()){
-                            var message = "Boolean expression with function returning '%s'";
-                            if (returnType.isArray()) message += " array";
-                            addReport(Report.newError(
-                                    Stage.SEMANTIC,
-                                    NodeUtils.getLine(booleanExpr),
-                                    NodeUtils.getColumn(booleanExpr),
-                                    String.format(message, returnType.getName()),
-                                    null)
-                            );
-                            return null;
-                        }
-                    }
-                }
-                found2 = true;
-            }
-            else if (!(booleanExpr.getChild(1).getKind().equals(Kind.BOOLEAN.toString()) || booleanExpr.getChild(1).getKind().equals(Kind.BOOLEAN_EXPR.toString()) || booleanExpr.getChild(1).getKind().equals(Kind.COMPARISON_EXPR.toString()) || booleanExpr.getChild(1).getKind().equals(Kind.UNARY_OP.toString()))){
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(booleanExpr),
-                        NodeUtils.getColumn(booleanExpr),
-                        String.format("Unexpected primitive type '%s' in boolean expression.",booleanExpr.getChild(1).getKind()),
-                        null)
-                );
-                return null;
-            }
-            else{
-                found2 = true;
-            }
-
-            for (var element : megaTable){
-                if (found1 && found2) break;
-                var flag = false;
-                var message = "";
-                if (element.getName().equals(varRefName) || element.getName().equals(varRefName2)){
-                    String variable = "";
-                    if (element.getName().equals(varRefName)){
-                        variable = varRefName;
-                        found1 = true;
-                    }
-                    else if (element.getName().equals(varRefName2)){
-                        variable = varRefName2;
-                        found2 = true;
-                    }
-                    if (element.getType().isArray()){
-                        // Create error report
-                        message = String.format("Boolean expression with array '%s'!", variable);
-                        flag = true;
-                    }
-                    else if (element.getType().getName().equals("int")) {
-                        // Create error report
-                        message = String.format("Boolean expression with integer variable '%s'!", variable);
-                        flag = true;
-                    }
-                    else if (!element.getType().getName().equals("boolean")){
-                        // Create error report
-                        message = String.format("Boolean expression with object '%s' of type '%s'!", variable, element.getType().getName());
-                        flag = true;
-                    }
-                    if (flag){
+                if (methodCallerType.getName().equals(table.getClassName())){
+                    var returnType = table.getReturnType(methodName);
+                    if (!returnType.getName().equals("int") || returnType.isArray()){
+                        var message = "Boolean expression with function returning '%s'";
+                        if (returnType.isArray()) message += " array";
                         addReport(Report.newError(
                                 Stage.SEMANTIC,
                                 NodeUtils.getLine(booleanExpr),
                                 NodeUtils.getColumn(booleanExpr),
-                                message,
+                                String.format(message, returnType.getName()),
                                 null)
                         );
                         return null;
                     }
                 }
             }
+            found1 = true;
         }
-        catch(Exception e){
-            var message = String.format("Unexpected boolean expression error.");
+        else if (!(booleanExpr.getChild(0).getKind().equals(Kind.BOOLEAN.toString()) || booleanExpr.getChild(0).getKind().equals(Kind.BOOLEAN_EXPR.toString()) || booleanExpr.getChild(0).getKind().equals(Kind.COMPARISON_EXPR.toString()) || booleanExpr.getChild(0).getKind().equals(Kind.UNARY_OP.toString()))){
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(booleanExpr),
                     NodeUtils.getColumn(booleanExpr),
-                    message,
+                    String.format("Unexpected primitive type '%s' in boolean expression.",booleanExpr.getChild(0).getKind()),
                     null)
             );
             return null;
+        }
+        else{
+            found1 = true;
+        }
+        if (booleanExpr.getChild(1).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+            varRefName2 = booleanExpr.getChild(1).get("name");
+        }
+        else if (booleanExpr.getChild(1).getKind().equals(Kind.FUNC_CALL.toString())){
+            var methodVariable = booleanExpr.getChild(1).getChild(0).get("name");
+            var methodName = booleanExpr.getChild(1).get("id");
+            Type methodCallerType = new Type("", false);
+            if (!table.getImports().contains(methodVariable)){
+                if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+                else{
+                    for (var element : megaTable) {
+                        if (element.getName().equals(methodVariable)) {
+                            methodCallerType = element.getType();
+                            break;
+                        }
+                    }
+                }
+                if (methodCallerType.getName().equals(table.getClassName())){
+                    var returnType = table.getReturnType(methodName);
+                    if (!returnType.getName().equals("int") || returnType.isArray()){
+                        var message = "Boolean expression with function returning '%s'";
+                        if (returnType.isArray()) message += " array";
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(booleanExpr),
+                                NodeUtils.getColumn(booleanExpr),
+                                String.format(message, returnType.getName()),
+                                null)
+                        );
+                        return null;
+                    }
+                }
+            }
+            found2 = true;
+        }
+        else if (!(booleanExpr.getChild(1).getKind().equals(Kind.BOOLEAN.toString()) || booleanExpr.getChild(1).getKind().equals(Kind.BOOLEAN_EXPR.toString()) || booleanExpr.getChild(1).getKind().equals(Kind.COMPARISON_EXPR.toString()) || booleanExpr.getChild(1).getKind().equals(Kind.UNARY_OP.toString()))){
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(booleanExpr),
+                    NodeUtils.getColumn(booleanExpr),
+                    String.format("Unexpected primitive type '%s' in boolean expression.",booleanExpr.getChild(1).getKind()),
+                    null)
+            );
+            return null;
+        }
+        else{
+            found2 = true;
+        }
+
+        for (var element : megaTable){
+            if (found1 && found2) break;
+            var flag = false;
+            var message = "";
+            if (element.getName().equals(varRefName) || element.getName().equals(varRefName2)){
+                String variable = "";
+                if (element.getName().equals(varRefName)){
+                    variable = varRefName;
+                    found1 = true;
+                }
+                else if (element.getName().equals(varRefName2)){
+                    variable = varRefName2;
+                    found2 = true;
+                }
+                if (element.getType().isArray()){
+                    // Create error report
+                    message = String.format("Boolean expression with array '%s'!", variable);
+                    flag = true;
+                }
+                else if (element.getType().getName().equals("int")) {
+                    // Create error report
+                    message = String.format("Boolean expression with integer variable '%s'!", variable);
+                    flag = true;
+                }
+                else if (!element.getType().getName().equals("boolean")){
+                    // Create error report
+                    message = String.format("Boolean expression with object '%s' of type '%s'!", variable, element.getType().getName());
+                    flag = true;
+                }
+                if (flag){
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(booleanExpr),
+                            NodeUtils.getColumn(booleanExpr),
+                            message,
+                            null)
+                    );
+                    return null;
+                }
+            }
         }
 
         return null;

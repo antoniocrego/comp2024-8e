@@ -184,35 +184,46 @@ public class ValidateMethodDecl extends AnalysisVisitor {
 
         // Check if exists a parameter or variable declaration with the same name as the variable reference
 
+        var methodVariable = funcCall.getChild(0).get("name");
+        var methodName = funcCall.get("id");
+        Type methodCallerType = new Type("", false);
+        var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
+        megaTable.addAll(table.getParameters(currentMethod));
+        megaTable.addAll(table.getFields());
+
+        for (var element : megaTable){
+            if (element.getName().equals(methodVariable)){
+                methodCallerType = element.getType();
+                break;
+            }
+        }
+
+        if (!(methodCallerType.getName().equals(table.getClassName()) || methodVariable.equals("this"))) return null;
+
+        List<Symbol> methodParameters;
+
         try{
-            var methodVariable = funcCall.getChild(0).get("name");
-            var methodName = funcCall.get("id");
-            Type methodCallerType = new Type("", false);
-            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
-            megaTable.addAll(table.getParameters(currentMethod));
-            megaTable.addAll(table.getFields());
+            methodParameters = table.getParameters(methodName);
+        }
+        catch(Exception e){
+            return null;
+        }
 
-            for (var element : megaTable){
-                if (element.getName().equals(methodVariable)){
-                    methodCallerType = element.getType();
-                    break;
-                }
-            }
-
-            if (!(methodCallerType.getName().equals(table.getClassName()) || methodVariable.equals("this"))) return null;
-
-            List<Symbol> methodParameters;
-
-            try{
-                methodParameters = table.getParameters(methodName);
-            }
-            catch(Exception e){
-                return null;
-            }
-
-            var givenParameters = funcCall.getChild(funcCall.getNumChildren()-1);
-            if (!givenParameters.getKind().equals(Kind.FUNC_ARGS.toString()) && !methodParameters.isEmpty()){
-                var message = String.format("Call to function '%s' without parameters.", methodName);
+        var givenParameters = funcCall.getChild(funcCall.getNumChildren()-1);
+        if (!givenParameters.getKind().equals(Kind.FUNC_ARGS.toString()) && !methodParameters.isEmpty()){
+            var message = String.format("Call to function '%s' without parameters.", methodName);
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(funcCall),
+                    NodeUtils.getColumn(funcCall),
+                    message,
+                    null)
+            );
+            return null;
+        }
+        else if (givenParameters.getKind().equals(Kind.FUNC_ARGS.toString())) {
+            if (givenParameters.getNumChildren() < methodParameters.size()) {
+                var message = String.format("Call to function '%s' with insufficient parameters.", methodName);
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(funcCall),
@@ -222,71 +233,11 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                 );
                 return null;
             }
-            else if (givenParameters.getKind().equals(Kind.FUNC_ARGS.toString())) {
-                if (givenParameters.getNumChildren() < methodParameters.size()) {
-                    var message = String.format("Call to function '%s' with insufficient parameters.", methodName);
-                    addReport(Report.newError(
-                            Stage.SEMANTIC,
-                            NodeUtils.getLine(funcCall),
-                            NodeUtils.getColumn(funcCall),
-                            message,
-                            null)
-                    );
-                    return null;
-                }
-                if (givenParameters.getNumChildren() >= methodParameters.size()) {
-                    if (methodParameters.get(methodParameters.size() - 1).getType().getName().equals("int...")) {
-                        for (int i = methodParameters.size() - 1; i < givenParameters.getNumChildren(); i++) {
-                            Type givenArgType = new Type("", false);
-                            Type expectedArgType = new Type("int", false);
-                            if (givenParameters.getChild(i).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-                                var varRefName = givenParameters.getChild(i).get("name");
-                                for (var element : megaTable) {
-                                    if (element.getName().equals(varRefName)) {
-                                        givenArgType = element.getType();
-                                        break;
-                                    }
-                                }
-                            } else if (givenParameters.getChild(i).getKind().equals(Kind.FUNC_CALL.toString())) { // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
-                                var methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
-                                var methodNameInner = givenParameters.getChild(i).get("id");
-                                Type methodCallerTypeInner = new Type("", false);
-                                if (methodVariableInner.equals("this"))
-                                    methodCallerTypeInner = new Type(table.getClassName(), false);
-                                else if (!table.getImports().contains(methodVariableInner)) {
-                                    for (var element : megaTable) {
-                                        if (element.getName().equals(methodVariableInner)) {
-                                            methodCallerTypeInner = element.getType();
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (!methodCallerTypeInner.getName().equals(table.getClassName()))
-                                    givenArgType = expectedArgType;
-                                else givenArgType = table.getReturnType(methodNameInner);
-                            } else givenArgType = TypeUtils.getExprType(givenParameters.getChild(i), table);
-                            if (!givenArgType.equals(expectedArgType)) {
-                                var message = "Call to function '%s' with invalid parameter type '%s'";
-                                if (givenArgType.isArray()) message += " array";
-                                message += ", expected '%s'";
-                                if (expectedArgType.isArray()) message += " array";
-                                message = String.format(message, methodName, givenArgType.getName(), expectedArgType.getName());
-                                addReport(Report.newError(
-                                        Stage.SEMANTIC,
-                                        NodeUtils.getLine(funcCall),
-                                        NodeUtils.getColumn(funcCall),
-                                        message,
-                                        null)
-                                );
-                                return null;
-                            }
-                        }
-                    }
-                }
-                if (!methodParameters.get(0).getType().getName().equals("int...")) {
-                    for (int i = 0; i < methodParameters.size(); i++) {
+            if (givenParameters.getNumChildren() >= methodParameters.size()) {
+                if (methodParameters.get(methodParameters.size() - 1).getType().getName().equals("int...")) {
+                    for (int i = methodParameters.size() - 1; i < givenParameters.getNumChildren(); i++) {
                         Type givenArgType = new Type("", false);
-                        Type expectedArgType = methodParameters.get(i).getType();
+                        Type expectedArgType = new Type("int", false);
                         if (givenParameters.getChild(i).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
                             var varRefName = givenParameters.getChild(i).get("name");
                             for (var element : megaTable) {
@@ -331,17 +282,53 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                     }
                 }
             }
-        }
-        catch(Exception e){
-            var message = String.format("Unexpected method parameters error.");
-            addReport(Report.newError(
-                    Stage.SEMANTIC,
-                    NodeUtils.getLine(funcCall),
-                    NodeUtils.getColumn(funcCall),
-                    message,
-                    null)
-            );
-            return null;
+            if (!methodParameters.get(0).getType().getName().equals("int...")) {
+                for (int i = 0; i < methodParameters.size(); i++) {
+                    Type givenArgType = new Type("", false);
+                    Type expectedArgType = methodParameters.get(i).getType();
+                    if (givenParameters.getChild(i).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+                        var varRefName = givenParameters.getChild(i).get("name");
+                        for (var element : megaTable) {
+                            if (element.getName().equals(varRefName)) {
+                                givenArgType = element.getType();
+                                break;
+                            }
+                        }
+                    } else if (givenParameters.getChild(i).getKind().equals(Kind.FUNC_CALL.toString())) { // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
+                        var methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
+                        var methodNameInner = givenParameters.getChild(i).get("id");
+                        Type methodCallerTypeInner = new Type("", false);
+                        if (methodVariableInner.equals("this"))
+                            methodCallerTypeInner = new Type(table.getClassName(), false);
+                        else if (!table.getImports().contains(methodVariableInner)) {
+                            for (var element : megaTable) {
+                                if (element.getName().equals(methodVariableInner)) {
+                                    methodCallerTypeInner = element.getType();
+                                    break;
+                                }
+                            }
+                        }
+                        if (!methodCallerTypeInner.getName().equals(table.getClassName()))
+                            givenArgType = expectedArgType;
+                        else givenArgType = table.getReturnType(methodNameInner);
+                    } else givenArgType = TypeUtils.getExprType(givenParameters.getChild(i), table);
+                    if (!givenArgType.equals(expectedArgType)) {
+                        var message = "Call to function '%s' with invalid parameter type '%s'";
+                        if (givenArgType.isArray()) message += " array";
+                        message += ", expected '%s'";
+                        if (expectedArgType.isArray()) message += " array";
+                        message = String.format(message, methodName, givenArgType.getName(), expectedArgType.getName());
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(funcCall),
+                                NodeUtils.getColumn(funcCall),
+                                message,
+                                null)
+                        );
+                        return null;
+                    }
+                }
+            }
         }
 
         return null;
@@ -352,92 +339,48 @@ public class ValidateMethodDecl extends AnalysisVisitor {
 
         // Check if exists a parameter or variable declaration with the same name as the variable reference
 
-        try{
-            String varRefName = "";
-            Type elementType = new Type("",false);
-            Type expectedReturnType = table.getReturnType(returnStmt.getParent().get("name"));
-            JmmNode returnExpr = returnStmt.getChild(0);
-            while (returnExpr.getKind().equals(Kind.PAREN_EXPR.toString())){
-                returnExpr=returnExpr.getChild(0);
-            }
-            if (returnExpr.getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-                varRefName = returnExpr.get("name");
-                var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
-                megaTable.addAll(table.getParameters(currentMethod));
-                megaTable.addAll(table.getFields());
+        String varRefName = "";
+        Type elementType = new Type("",false);
+        Type expectedReturnType = table.getReturnType(returnStmt.getParent().get("name"));
+        JmmNode returnExpr = returnStmt.getChild(0);
+        while (returnExpr.getKind().equals(Kind.PAREN_EXPR.toString())){
+            returnExpr=returnExpr.getChild(0);
+        }
+        if (returnExpr.getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+            varRefName = returnExpr.get("name");
+            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
+            megaTable.addAll(table.getParameters(currentMethod));
+            megaTable.addAll(table.getFields());
 
-                for (var element : megaTable){
-                    if (element.getName().equals(varRefName)){
-                        elementType = element.getType();
+            for (var element : megaTable){
+                if (element.getName().equals(varRefName)){
+                    elementType = element.getType();
+                    break;
+                }
+            }
+        }
+        else if (returnExpr.getKind().equals(Kind.FUNC_CALL.toString())){
+            var methodVariable = returnExpr.getChild(0).get("name");
+            var methodName = returnExpr.get("id");
+            Type methodCallerType = new Type("", false);
+            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
+            megaTable.addAll(table.getParameters(currentMethod));
+            megaTable.addAll(table.getFields());
+            if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+            else if (!table.getImports().contains(methodVariable)){
+                for (var element : megaTable) {
+                    if (element.getName().equals(methodVariable)) {
+                        methodCallerType = element.getType();
                         break;
                     }
                 }
             }
-            else if (returnExpr.getKind().equals(Kind.FUNC_CALL.toString())){
-                var methodVariable = returnExpr.getChild(0).get("name");
-                var methodName = returnExpr.get("id");
-                Type methodCallerType = new Type("", false);
-                var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
-                megaTable.addAll(table.getParameters(currentMethod));
-                megaTable.addAll(table.getFields());
-                if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
-                else if (!table.getImports().contains(methodVariable)){
-                    for (var element : megaTable) {
-                        if (element.getName().equals(methodVariable)) {
-                            methodCallerType = element.getType();
-                            break;
-                        }
-                    }
-                }
-                if (!methodCallerType.getName().equals(table.getClassName())) return null;
-                else elementType = table.getReturnType(methodName);
-            }
-            else if (returnExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || returnExpr.getKind().equals(Kind.BINARY_EXPR.toString()) || returnExpr.getKind().equals(Kind.ARRAY_ACCESS.toString()) || returnExpr.getKind().equals(Kind.LENGTH_EXPR.toString())){
-                if (!expectedReturnType.equals(new Type("int", false))){
-                    var message = String.format("Return value of type '%s' given for function '%s' of return type '%s'","int",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
-                    addReport(Report.newError(
-                            Stage.SEMANTIC,
-                            NodeUtils.getLine(returnStmt),
-                            NodeUtils.getColumn(returnStmt),
-                            message,
-                            null)
-                    );
-                    return null;
-                }
-            }
-            else if (returnExpr.getKind().equals(Kind.BOOLEAN.toString()) || returnExpr.getKind().equals(Kind.COMPARISON_EXPR.toString()) || returnExpr.getKind().equals(Kind.BOOLEAN_EXPR.toString()) || returnExpr.getKind().equals(Kind.UNARY_OP.toString())){
-                if (!expectedReturnType.equals(new Type("boolean", false))){
-                    var message = String.format("Return value of type '%s' given for function '%s' of return type '%s'","boolean",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
-                    addReport(Report.newError(
-                            Stage.SEMANTIC,
-                            NodeUtils.getLine(returnStmt),
-                            NodeUtils.getColumn(returnStmt),
-                            message,
-                            null)
-                    );
-                    return null;
-                }
-            }
-            else if (returnExpr.getKind().equals(Kind.ARRAY_INIT.toString())){
-                if (!expectedReturnType.equals(new Type("int", true))){
-                    var message = String.format("Return value of type '%s' array given for function '%s' of return type '%s'","int",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
-                    addReport(Report.newError(
-                            Stage.SEMANTIC,
-                            NodeUtils.getLine(returnStmt),
-                            NodeUtils.getColumn(returnStmt),
-                            message,
-                            null)
-                    );
-                    return null;
-                }
-            }
-            if (elementType.getName().isEmpty()) return null;
-            if (!elementType.equals(expectedReturnType)){
-                var message = "Return value of type '%s' ";
-                if (elementType.isArray()) message+="array ";
-                message+="given for function '%s' of return type '%s'";
-                if (expectedReturnType.isArray()) message+=" array";
-                message = String.format(message, elementType.getName(), returnStmt.getParent().get("name"), expectedReturnType.getName());
+            if (!methodCallerType.getName().equals(table.getClassName())) return null;
+            else elementType = table.getReturnType(methodName);
+        }
+        else if (returnExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || returnExpr.getKind().equals(Kind.BINARY_EXPR.toString()) || returnExpr.getKind().equals(Kind.ARRAY_ACCESS.toString()) || returnExpr.getKind().equals(Kind.LENGTH_EXPR.toString())){
+            if (!expectedReturnType.equals(new Type("int", false))){
+                var message = String.format("Return value of type '%s' given for function '%s' of return type '%s'","int",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(returnStmt),
@@ -448,8 +391,39 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                 return null;
             }
         }
-        catch(Exception e){
-            var message = String.format("Unexpected return error.");
+        else if (returnExpr.getKind().equals(Kind.BOOLEAN.toString()) || returnExpr.getKind().equals(Kind.COMPARISON_EXPR.toString()) || returnExpr.getKind().equals(Kind.BOOLEAN_EXPR.toString()) || returnExpr.getKind().equals(Kind.UNARY_OP.toString())){
+            if (!expectedReturnType.equals(new Type("boolean", false))){
+                var message = String.format("Return value of type '%s' given for function '%s' of return type '%s'","boolean",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(returnStmt),
+                        NodeUtils.getColumn(returnStmt),
+                        message,
+                        null)
+                );
+                return null;
+            }
+        }
+        else if (returnExpr.getKind().equals(Kind.ARRAY_INIT.toString())){
+            if (!expectedReturnType.equals(new Type("int", true))){
+                var message = String.format("Return value of type '%s' array given for function '%s' of return type '%s'","int",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(returnStmt),
+                        NodeUtils.getColumn(returnStmt),
+                        message,
+                        null)
+                );
+                return null;
+            }
+        }
+        if (elementType.getName().isEmpty()) return null;
+        if (!elementType.equals(expectedReturnType)){
+            var message = "Return value of type '%s' ";
+            if (elementType.isArray()) message+="array ";
+            message+="given for function '%s' of return type '%s'";
+            if (expectedReturnType.isArray()) message+=" array";
+            message = String.format(message, elementType.getName(), returnStmt.getParent().get("name"), expectedReturnType.getName());
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(returnStmt),

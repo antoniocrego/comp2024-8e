@@ -39,165 +39,152 @@ public class MathCheck extends AnalysisVisitor {
 
         // Check if exists a parameter or variable declaration with the same name as the variable reference
 
-        try{
-            String varRefName = "";
-            String varRefName2 = "";
-            boolean found1 = false;
-            boolean found2 = false;
+        String varRefName = "";
+        String varRefName2 = "";
+        boolean found1 = false;
+        boolean found2 = false;
 
-            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
-            megaTable.addAll(table.getParameters(currentMethod));
-            megaTable.addAll(table.getFields());
+        var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
+        megaTable.addAll(table.getParameters(currentMethod));
+        megaTable.addAll(table.getFields());
 
-            if (binaryExpr.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-                varRefName = binaryExpr.getChild(0).get("name");
-            }
-            else if (binaryExpr.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
-                var methodVariable = binaryExpr.getChild(0).getChild(0).get("name");
-                var methodName = binaryExpr.getChild(0).get("id");
-                Type methodCallerType = new Type("", false);
-                if (!table.getImports().contains(methodVariable)){
-                    if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
-                    else{
-                        for (var element : megaTable) {
-                            if (element.getName().equals(methodVariable)) {
-                                methodCallerType = element.getType();
-                                break;
-                            }
-                        }
-                    }
-                    if (methodCallerType.getName().equals(table.getClassName())){
-                        var returnType = table.getReturnType(methodName);
-                        if (!returnType.getName().equals("int") || returnType.isArray()){
-                            var message = "Binary expression with function returning '%s'";
-                            if (returnType.isArray()) message += " array";
-                            addReport(Report.newError(
-                                    Stage.SEMANTIC,
-                                    NodeUtils.getLine(binaryExpr),
-                                    NodeUtils.getColumn(binaryExpr),
-                                    String.format(message, returnType.getName()),
-                                    null)
-                            );
-                            return null;
+        if (binaryExpr.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+            varRefName = binaryExpr.getChild(0).get("name");
+        }
+        else if (binaryExpr.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
+            var methodVariable = binaryExpr.getChild(0).getChild(0).get("name");
+            var methodName = binaryExpr.getChild(0).get("id");
+            Type methodCallerType = new Type("", false);
+            if (!table.getImports().contains(methodVariable)){
+                if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+                else{
+                    for (var element : megaTable) {
+                        if (element.getName().equals(methodVariable)) {
+                            methodCallerType = element.getType();
+                            break;
                         }
                     }
                 }
-                found1 = true;
-            }
-            else if (!(binaryExpr.getChild(0).getKind().equals(Kind.INTEGER_LITERAL.toString()) || binaryExpr.getChild(0).getKind().equals(Kind.ARRAY_ACCESS.toString()) || binaryExpr.getChild(0).getKind().equals(Kind.LENGTH_EXPR.toString()))){
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(binaryExpr),
-                        NodeUtils.getColumn(binaryExpr),
-                        String.format("Unexpected primitive type '%s' in binary expression.",binaryExpr.getChild(0).getKind()),
-                        null)
-                );
-                return null;
-            }
-            else{
-                found1 = true;
-            }
-            if (binaryExpr.getChild(1).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-                varRefName2 = binaryExpr.getChild(1).get("name");
-            }
-            else if (binaryExpr.getChild(1).getKind().equals(Kind.FUNC_CALL.toString())){
-                var methodVariable = binaryExpr.getChild(1).getChild(0).get("name");
-                var methodName = binaryExpr.getChild(1).get("id");
-                Type methodCallerType = new Type("", false);
-                if (!table.getImports().contains(methodVariable)){
-                    if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
-                    else{
-                        for (var element : megaTable) {
-                            if (element.getName().equals(methodVariable)) {
-                                methodCallerType = element.getType();
-                                break;
-                            }
-                        }
-                    }
-                    if (methodCallerType.getName().equals(table.getClassName())){
-                        var returnType = table.getReturnType(methodName);
-                        if (!returnType.getName().equals("int") || returnType.isArray()){
-                            var message = "Binary expression with function returning '%s'";
-                            if (returnType.isArray()) message += " array";
-                            addReport(Report.newError(
-                                    Stage.SEMANTIC,
-                                    NodeUtils.getLine(binaryExpr),
-                                    NodeUtils.getColumn(binaryExpr),
-                                    String.format(message, returnType.getName()),
-                                    null)
-                            );
-                            return null;
-                        }
-                    }
-                }
-                found2 = true;
-            }
-            else if (!(binaryExpr.getChild(1).getKind().equals(Kind.INTEGER_LITERAL.toString()) || binaryExpr.getChild(1).getKind().equals(Kind.ARRAY_ACCESS.toString()))){
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(binaryExpr),
-                        NodeUtils.getColumn(binaryExpr),
-                        String.format("Unexpected primitive type '%s' in binary expression.", binaryExpr.getChild(1).getKind()),
-                        null)
-                );
-                return null;
-            }
-            else{
-                found2 = true;
-            }
-
-            for (var element : megaTable){
-                if (found1 && found2) break;
-                var flag = false;
-                var message = "";
-                if (element.getName().equals(varRefName) || element.getName().equals(varRefName2)){
-                    String variable = "";
-                    if (element.getName().equals(varRefName)){
-                        variable = varRefName;
-                        found1 = true;
-                    }
-                    else if (element.getName().equals(varRefName2)){
-                        variable = varRefName2;
-                        found2 = true;
-                    }
-                    if (element.getType().isArray()){
-                        // Create error report
-                        message = String.format("Binary operation with array '%s'!", variable);
-                        flag = true;
-                    }
-                    else if (element.getType().getName().equals("boolean")) {
-                        // Create error report
-                        message = String.format("Binary operation with boolean variable '%s'!", variable);
-                        flag = true;
-                    }
-                    else if (!element.getType().getName().equals("int")){
-                        // Create error report
-                        message = String.format("Binary operation with object '%s' of type '%s'!", variable, element.getType().getName());
-                        flag = true;
-                    }
-                    if (flag){
+                if (methodCallerType.getName().equals(table.getClassName())){
+                    var returnType = table.getReturnType(methodName);
+                    if (!returnType.getName().equals("int") || returnType.isArray()){
+                        var message = "Binary expression with function returning '%s'";
+                        if (returnType.isArray()) message += " array";
                         addReport(Report.newError(
                                 Stage.SEMANTIC,
                                 NodeUtils.getLine(binaryExpr),
                                 NodeUtils.getColumn(binaryExpr),
-                                message,
+                                String.format(message, returnType.getName()),
                                 null)
                         );
                         return null;
                     }
                 }
             }
+            found1 = true;
         }
-        catch(Exception e){
-            var message = String.format("Unexpected math error.");
+        else if (!(binaryExpr.getChild(0).getKind().equals(Kind.INTEGER_LITERAL.toString()) || binaryExpr.getChild(0).getKind().equals(Kind.ARRAY_ACCESS.toString()) || binaryExpr.getChild(0).getKind().equals(Kind.LENGTH_EXPR.toString()))){
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(binaryExpr),
                     NodeUtils.getColumn(binaryExpr),
-                    message,
+                    String.format("Unexpected primitive type '%s' in binary expression.",binaryExpr.getChild(0).getKind()),
                     null)
             );
             return null;
+        }
+        else{
+            found1 = true;
+        }
+        if (binaryExpr.getChild(1).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+            varRefName2 = binaryExpr.getChild(1).get("name");
+        }
+        else if (binaryExpr.getChild(1).getKind().equals(Kind.FUNC_CALL.toString())){
+            var methodVariable = binaryExpr.getChild(1).getChild(0).get("name");
+            var methodName = binaryExpr.getChild(1).get("id");
+            Type methodCallerType = new Type("", false);
+            if (!table.getImports().contains(methodVariable)){
+                if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+                else{
+                    for (var element : megaTable) {
+                        if (element.getName().equals(methodVariable)) {
+                            methodCallerType = element.getType();
+                            break;
+                        }
+                    }
+                }
+                if (methodCallerType.getName().equals(table.getClassName())){
+                    var returnType = table.getReturnType(methodName);
+                    if (!returnType.getName().equals("int") || returnType.isArray()){
+                        var message = "Binary expression with function returning '%s'";
+                        if (returnType.isArray()) message += " array";
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(binaryExpr),
+                                NodeUtils.getColumn(binaryExpr),
+                                String.format(message, returnType.getName()),
+                                null)
+                        );
+                        return null;
+                    }
+                }
+            }
+            found2 = true;
+        }
+        else if (!(binaryExpr.getChild(1).getKind().equals(Kind.INTEGER_LITERAL.toString()) || binaryExpr.getChild(1).getKind().equals(Kind.ARRAY_ACCESS.toString()))){
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(binaryExpr),
+                    NodeUtils.getColumn(binaryExpr),
+                    String.format("Unexpected primitive type '%s' in binary expression.", binaryExpr.getChild(1).getKind()),
+                    null)
+            );
+            return null;
+        }
+        else{
+            found2 = true;
+        }
+
+        for (var element : megaTable){
+            if (found1 && found2) break;
+            var flag = false;
+            var message = "";
+            if (element.getName().equals(varRefName) || element.getName().equals(varRefName2)){
+                String variable = "";
+                if (element.getName().equals(varRefName)){
+                    variable = varRefName;
+                    found1 = true;
+                }
+                else if (element.getName().equals(varRefName2)){
+                    variable = varRefName2;
+                    found2 = true;
+                }
+                if (element.getType().isArray()){
+                    // Create error report
+                    message = String.format("Binary operation with array '%s'!", variable);
+                    flag = true;
+                }
+                else if (element.getType().getName().equals("boolean")) {
+                    // Create error report
+                    message = String.format("Binary operation with boolean variable '%s'!", variable);
+                    flag = true;
+                }
+                else if (!element.getType().getName().equals("int")){
+                    // Create error report
+                    message = String.format("Binary operation with object '%s' of type '%s'!", variable, element.getType().getName());
+                    flag = true;
+                }
+                if (flag){
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(binaryExpr),
+                            NodeUtils.getColumn(binaryExpr),
+                            message,
+                            null)
+                    );
+                    return null;
+                }
+            }
         }
 
         return null;

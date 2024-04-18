@@ -41,63 +41,50 @@ public class MethodCheck extends AnalysisVisitor {
 
         // Check if exists a parameter or variable declaration with the same name as the variable reference
 
-        try{
-            var methodVariable = funcCall.getChild(0).get("name");
-            var methodName = funcCall.get("id");
-            Type methodCallerType = new Type("", false);
-            if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
-            else if (table.getImports().contains(methodVariable)) return null;
-            else {
-                var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
-                megaTable.addAll(table.getParameters(currentMethod));
-                megaTable.addAll(table.getFields());
+        var methodVariable = funcCall.getChild(0).get("name");
+        var methodName = funcCall.get("id");
+        Type methodCallerType = new Type("", false);
+        if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
+        else if (table.getImports().contains(methodVariable)) return null;
+        else {
+            var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
+            megaTable.addAll(table.getParameters(currentMethod));
+            megaTable.addAll(table.getFields());
 
-                for (var element : megaTable){
-                    if (element.getName().equals(methodVariable)){
-                        methodCallerType = element.getType();
-                        break;
-                    }
+            for (var element : megaTable){
+                if (element.getName().equals(methodVariable)){
+                    methodCallerType = element.getType();
+                    break;
                 }
             }
-            if (methodCallerType.getName().equals("int") || methodCallerType.getName().equals("boolean") || methodCallerType.isArray()){
-                var message = "Calling function from variable of type '%s'";
-                if (methodCallerType.isArray()) message+=" array";
-                if (methodCallerType.getName().equals("int") || methodCallerType.getName().equals("boolean")) message+=", which is not an object";
-                message = String.format(message, methodCallerType.getName());
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(funcCall),
-                        NodeUtils.getColumn(funcCall),
-                        message,
-                        null)
-                );
-                return null;
-            }
-            else if (!methodCallerType.getName().equals(table.getClassName()) && !table.getImports().contains(methodCallerType.getName())){
-                var message = String.format("Call to undefined function '%s' of object of unknown class '%s'",methodName,methodCallerType.getName());
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(funcCall),
-                        NodeUtils.getColumn(funcCall),
-                        message,
-                        null)
-                );
-                return null;
-            }
-            else if (methodCallerType.getName().equals(table.getClassName()) && !table.getMethods().contains(methodName) && table.getSuper()==null){
-                var message = String.format("Call to undefined function '%s' of object of class '%s'", methodName, table.getClassName());
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(funcCall),
-                        NodeUtils.getColumn(funcCall),
-                        message,
-                        null)
-                );
-                return null;
-            }
         }
-        catch(Exception e){
-            var message = String.format("Unexpected method call error.");
+        if (methodCallerType.getName().equals("int") || methodCallerType.getName().equals("boolean") || methodCallerType.isArray()){
+            var message = "Calling function from variable of type '%s'";
+            if (methodCallerType.isArray()) message+=" array";
+            if (methodCallerType.getName().equals("int") || methodCallerType.getName().equals("boolean")) message+=", which is not an object";
+            message = String.format(message, methodCallerType.getName());
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(funcCall),
+                    NodeUtils.getColumn(funcCall),
+                    message,
+                    null)
+            );
+            return null;
+        }
+        else if (!methodCallerType.getName().equals(table.getClassName()) && !table.getImports().contains(methodCallerType.getName())){
+            var message = String.format("Call to undefined function '%s' of object of unknown class '%s'",methodName,methodCallerType.getName());
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(funcCall),
+                    NodeUtils.getColumn(funcCall),
+                    message,
+                    null)
+            );
+            return null;
+        }
+        else if (methodCallerType.getName().equals(table.getClassName()) && !table.getMethods().contains(methodName) && table.getSuper()==null){
+            var message = String.format("Call to undefined function '%s' of object of class '%s'", methodName, table.getClassName());
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(funcCall),
