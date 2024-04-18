@@ -234,6 +234,18 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                 return null;
             }
             if (givenParameters.getNumChildren() >= methodParameters.size()) {
+                if (methodParameters.isEmpty() && givenParameters.getNumChildren()!=0){
+                    var message = String.format("Call to function '%s' with too many parameters.", methodName);
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(funcCall),
+                            NodeUtils.getColumn(funcCall),
+                            message,
+                            null)
+                    );
+                    return null;
+                }
+                if (methodParameters.isEmpty() && givenParameters.getNumChildren()==0) return null;
                 if (methodParameters.get(methodParameters.size() - 1).getType().getName().equals("int...")) {
                     for (int i = methodParameters.size() - 1; i < givenParameters.getNumChildren(); i++) {
                         Type givenArgType = new Type("", false);

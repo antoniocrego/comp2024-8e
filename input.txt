@@ -8,7 +8,7 @@ class O {
     }
 
     public int foo(){
-        this.funk([1,2,3]);
+        this.funk(1, Simple.tunk());
         return 0;
     }
 
