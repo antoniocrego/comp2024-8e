@@ -45,7 +45,17 @@ public class ImportCheck extends AnalysisVisitor {
                     message,
                     null)
             );
-            return null;
+        }
+
+        if (importDecl.get("name").equals(table.getClassName())){
+            var message = String.format("Importing class '%s' with another definition in file", importDecl.get("name"));
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(importDecl),
+                    NodeUtils.getColumn(importDecl),
+                    message,
+                    null)
+            );
         }
 
         return null;
