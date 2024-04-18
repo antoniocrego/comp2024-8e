@@ -187,6 +187,21 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         // Check in class fields
         for(Symbol field : table.getFields()){
             if(field.getName().equals(objectName)){
+                String tempUsed = OptUtils.getTemp();
+                String type = OptUtils.toOllirType(field.getType());
+                computation.append(tempUsed);
+                computation.append(type);
+                computation.append(SPACE);
+                computation.append(ASSIGN);
+                computation.append(type);
+                computation.append(" getfield(this, ");
+                computation.append(objectName);
+                computation.append(type);
+                computation.append(")");
+                computation.append(type);
+                computation.append(END_STMT);
+
+                objectName = tempUsed + type;
 
                 isStatic = false;
                 break;

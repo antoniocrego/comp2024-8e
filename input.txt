@@ -1,16 +1,13 @@
-import Simple.a;
+import java.time.Instant;
+class PrazerFactory {
+        Instant b;
+        int c;
+        Instant d;
 
-
-class O {
-
-    public int funk(int... c){
-        return 1;
-    }
-
-    public int foo(){
-        this.funk([1,2,3]);
-        return 0;
-    }
+        public int useTime(){
+           c = 10;
+           d = Instant.now();
+           return b.getMilis();
+        }
 
 }
-
