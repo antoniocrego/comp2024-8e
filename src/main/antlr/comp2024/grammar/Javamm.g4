@@ -94,7 +94,7 @@ args
 expr
     : '(' expr ')' #ParenExpr
     | op='!' expr #UnaryOp
-    | expr '.' 'length' # LengthExpr
+    | expr '.length' # LengthExpr
     | expr '.' id=ID '(' args? ')' #FuncCall
     | expr '[' index=expr ']' #ArrayAccess
     | 'new' type '[' size=expr ']' # NewArray

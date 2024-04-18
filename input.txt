@@ -3,10 +3,10 @@ import io;
 
 class Simple {
 
-    int foo(){
-        int length;
-        length = 2;
-        return length;
+    public int foo(){
+        int lengt;
+        lengt = lengt.length;
+        return lengt;
     }
 
 }

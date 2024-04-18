@@ -45,12 +45,12 @@ public class Launcher {
         System.out.println(semanticsResult.getRootNode().toTree());
 
         // Optimization stage
-        JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
-        OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
+        //JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
+        //OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
         //TestUtils.noErrors(ollirResult.getReports());
 
         // Print OLLIR code
-        System.out.println(ollirResult.getOllirCode());
+        //System.out.println(ollirResult.getOllirCode());
 
         // Code generation stage
         //JasminBackendImpl jasminGen = new JasminBackendImpl();
