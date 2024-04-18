@@ -1,10 +1,14 @@
 import Simple.a;
 
 
-class Simple {
+class O {
+
+    public int funk(int[] b){
+        return 1;
+    }
 
     public int foo(){
-        Simple a;
+        this.funk([1,true,3]);
         return 0;
     }
 
