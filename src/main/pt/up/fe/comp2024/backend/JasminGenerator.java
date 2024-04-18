@@ -8,6 +8,7 @@ import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
+import javax.lang.model.element.TypeElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -95,6 +96,17 @@ public class JasminGenerator {
             }
 
             code.append(generators.apply(method));
+
+//            List<Instruction> callMethods = method.getInstructions().stream().filter(inst -> inst.getInstType() == InstructionType.CALL).toList();
+//            for (Instruction callInst : callMethods) {
+//                CallInstruction callInstruction = (CallInstruction) callInst;
+//                if (callInstruction.getInvocationType() == CallType.invokespecial || ((CallInstruction) callInst).getReturnType().getTypeOfElement() != ElementType.VOID) {
+//                    code.append("pop").append(NL);
+//                    break;
+//                }
+//            }
+
+
         }
 
         return code.toString();
@@ -271,6 +283,8 @@ public class JasminGenerator {
                         .append(className)
                         .append("/<init>()")
                         .append(getType(callInst.getReturnType()))
+                        .append(NL)
+                        .append("pop")
                         .append(NL);
             }
             case NEW -> {
@@ -278,6 +292,8 @@ public class JasminGenerator {
                 code
                         .append("new ")
                         .append(caller.getName())
+                        .append(NL)
+                        .append("dup")
                         .append(NL);
             }
             default -> throw new NotImplementedException(callInst.getClass());
