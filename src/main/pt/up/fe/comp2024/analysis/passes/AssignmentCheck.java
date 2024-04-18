@@ -42,9 +42,15 @@ public class AssignmentCheck extends AnalysisVisitor {
 
         try {
             String varRefName;
-            if (assign.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString()) || assign.getChild(0).getKind().equals(Kind.ARRAY_ACCESS.toString())) {
+            boolean forceNotArray = false;
+            if (assign.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
                 varRefName = assign.getChild(0).get("name");
-            } else {
+            }
+            else if (assign.getChild(0).getKind().equals(Kind.ARRAY_ACCESS.toString())){
+                varRefName = assign.getChild(0).getChild(0).get("name");
+                forceNotArray = true;
+            }
+            else {
                 var message = "Assignment to non-variable on the left hand side.";
                 addReport(Report.newError(
                         Stage.SEMANTIC,
@@ -66,7 +72,7 @@ public class AssignmentCheck extends AnalysisVisitor {
 
             for (var element : megaTable) {
                 if (element.getName().equals(varRefName)) {
-                    isArray = element.getType().isArray();
+                    if (element.getType().isArray() && !forceNotArray) isArray=true;
                     elementType = element.getType().getName();
                     isCustom = !element.getType().getName().equals("int") && !element.getType().getName().equals("boolean");
                     break;

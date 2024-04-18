@@ -4,9 +4,10 @@ import io;
 class Simple {
 
     public int foo(){
-        int lengt;
-        lengt = lengt.length;
-        return lengt;
+        int[] a;
+        a = [1,2,3];
+        a[2] = 4;
+        return 0;
     }
 
 }
