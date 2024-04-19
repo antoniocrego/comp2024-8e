@@ -10,7 +10,7 @@ class AssumeArguments extends B {
     }
 
     int foo(int d){
-        this.doo(1+a+2*3, new AssumeArguments(), true, 1+(2*3));
+        this.doo(1+a+2*3, new AssumeArguments(), !(true && false), 1+(2*3));
         return 0;
     }
 }

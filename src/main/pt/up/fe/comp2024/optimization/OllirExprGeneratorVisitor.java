@@ -31,6 +31,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(PAREN_EXPR, this::visitParentExp);
         addVisit(INTEGER_LITERAL, this::visitInteger);
         addVisit(BOOLEAN, this::visitBoolean);
+        addVisit(COMPARISON_EXPR, this::visitBinExpr);
+        addVisit(BOOLEAN_EXPR, this::visitBinExpr);
+        addVisit(UNARY_OP, this::visitUnary);
         addVisit(FUNC_CALL, this::visitFuncCall);
         addVisit(NEW_CLASS, this::visitNewClass);
 
@@ -84,6 +87,40 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         return new OllirExprResult(code);
     }
 
+    private OllirExprResult visitUnary(JmmNode node, Void unused) {
+
+        var lhs = visit(node.getJmmChild(0));
+
+        StringBuilder computation = new StringBuilder();
+
+        // code to compute the children
+        computation.append(lhs.getComputation());
+
+        // code to compute self
+        Type resType = TypeUtils.getExprType(node, table);
+        String resOllirType = OptUtils.toOllirType(resType);
+        String code = OptUtils.getTemp() + resOllirType;
+
+        String lhsCode = lhs.getCode();
+        if(lhs.getCode().contains("invokevirtual")){
+            String type = OptUtils.getTemp() + resOllirType;
+            computation.append(type);
+            computation.append(SPACE);
+            computation.append(ASSIGN);
+            computation.append(resOllirType);
+            computation.append(SPACE);
+            computation.append(lhs.getCode());
+            lhsCode = type;
+        }
+
+        Type type = TypeUtils.getExprType(node, table);
+
+        computation.append(code).append(SPACE)
+                .append(ASSIGN).append(resOllirType).append(SPACE).append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
+                .append(lhsCode).append(END_STMT);
+
+        return new OllirExprResult(code, computation);
+    }
 
     private OllirExprResult visitParentExp(JmmNode node, Void unused){
 
