@@ -252,23 +252,27 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                         for (int i = methodParameters.size() - 1; i < givenParameters.getNumChildren(); i++) {
                             Type givenArgType = new Type("", false);
                             Type expectedArgType = new Type("int", false);
-                            if (givenParameters.getChild(i).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-                                var varRefName = givenParameters.getChild(i).get("name");
+                            var currentExplore = givenParameters.getChild(i);
+                            while (currentExplore.getKind().equals(Kind.PAREN_EXPR.toString())){
+                                currentExplore = currentExplore.getChild(0);
+                            }
+                            if (currentExplore.getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+                                var varRefName = currentExplore.get("name");
                                 for (var element : megaTable) {
                                     if (element.getName().equals(varRefName)) {
                                         givenArgType = element.getType();
                                         break;
                                     }
                                 }
-                            } else if (givenParameters.getChild(i).getKind().equals(Kind.FUNC_CALL.toString())) { // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
+                            } else if (currentExplore.getKind().equals(Kind.FUNC_CALL.toString())) { // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
                                 var methodVariableInner = "";
-                                var methodNameInner = givenParameters.getChild(i).get("id");
+                                var methodNameInner = currentExplore.get("id");
                                 Type methodCallerTypeInner = new Type("", false);
-                                if (!givenParameters.getChild(i).getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
-                                    methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
+                                if (!currentExplore.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
+                                    methodVariableInner = currentExplore.getChild(0).get("name");
                                 }
                                 else{
-                                    var callingMethod = givenParameters.getChild(i).getChild(0);
+                                    var callingMethod = currentExplore.getChild(0);
                                     while(callingMethod.getKind().equals(Kind.FUNC_CALL.toString())){
                                         callingMethod = callingMethod.getChild(0);
                                     }
@@ -301,7 +305,7 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                                 if (!methodCallerTypeInner.getName().equals(table.getClassName()))
                                     givenArgType = expectedArgType;
                                 else givenArgType = table.getReturnType(methodNameInner);
-                            } else givenArgType = TypeUtils.getExprType(givenParameters.getChild(i), table);
+                            } else givenArgType = TypeUtils.getExprType(currentExplore, table);
                             if (!givenArgType.equals(expectedArgType)) {
                                 var message = "Call to function '%s' with invalid parameter type '%s'";
                                 if (givenArgType.isArray()) message += " array";
@@ -360,8 +364,12 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                 for (int i = 0; i < exploreLength; i++) {
                     Type givenArgType = new Type("", false);
                     Type expectedArgType = methodParameters.get(i).getType();
-                    if (givenParameters.getChild(i).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-                        var varRefName = givenParameters.getChild(i).get("name");
+                    var currentExplore = givenParameters.getChild(i);
+                    while (currentExplore.getKind().equals(Kind.PAREN_EXPR.toString())){
+                        currentExplore = currentExplore.getChild(0);
+                    }
+                    if (currentExplore.getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+                        var varRefName = currentExplore.get("name");
                         if (varRefName.equals("this")) givenArgType = new Type(table.getClassName(), false);
                         else{
                             for (var element : megaTable) {
@@ -371,15 +379,15 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                                 }
                             }
                         }
-                    } else if (givenParameters.getChild(i).getKind().equals(Kind.FUNC_CALL.toString())) { // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
+                    } else if (currentExplore.getKind().equals(Kind.FUNC_CALL.toString())) { // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
                         var methodVariableInner = "";
-                        var methodNameInner = givenParameters.getChild(i).get("id");
+                        var methodNameInner = currentExplore.get("id");
                         Type methodCallerTypeInner = new Type("", false);
-                        if (!givenParameters.getChild(i).getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
-                            methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
+                        if (!currentExplore.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
+                            methodVariableInner = currentExplore.getChild(0).get("name");
                         }
                         else{
-                            var callingMethod = givenParameters.getChild(i).getChild(0);
+                            var callingMethod = currentExplore.getChild(0);
                             while(callingMethod.getKind().equals(Kind.FUNC_CALL.toString())){
                                 callingMethod = callingMethod.getChild(0);
                             }
@@ -412,7 +420,7 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                         if (!methodCallerTypeInner.getName().equals(table.getClassName()))
                             givenArgType = expectedArgType;
                         else givenArgType = table.getReturnType(methodNameInner);
-                    } else givenArgType = TypeUtils.getExprType(givenParameters.getChild(i), table);
+                    } else givenArgType = TypeUtils.getExprType(currentExplore, table);
                     if (!givenArgType.equals(expectedArgType)) {
                         if (!(expectedArgType.getName().equals(table.getSuper()) && givenArgType.getName().equals(table.getClassName())) && !(new HashSet<>(table.getImports()).containsAll(Arrays.asList(givenArgType.getName(), expectedArgType.getName())) && !(expectedArgType.getName().equals(table.getClassName()) && givenArgType.getName().equals(table.getSuper())))) {
                             var message = "Call to function '%s' with invalid parameter type '%s'";

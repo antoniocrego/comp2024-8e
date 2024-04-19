@@ -1,14 +1,15 @@
 import B;
 class A {
-    B b;
+    int b;
 
-    public int foo(int a, int b){
+    public int foo(int a, int b, int c){
         return 0;
     }
 
     public int testing() {
-        boolean p2;
-        p2 = b.bar();
+        int p2;
+        B o;
+        p2 = this.foo(b,2, ((this.testing()*this.foo(2,3,4))-6));
         return 0;
     }
 }
