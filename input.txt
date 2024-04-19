@@ -1,16 +1,16 @@
 import A.c;
+import C;
 import B;
 
 class AssumeArguments extends B {
     int a;
 
-    int doo(B d){
+    int doo(int h){
         return 0;
     }
 
     int foo(int d){
-        AssumeArguments a;
-        this.doo(a);
+        this.doo(1+a+2*3);
         return 0;
     }
 }
