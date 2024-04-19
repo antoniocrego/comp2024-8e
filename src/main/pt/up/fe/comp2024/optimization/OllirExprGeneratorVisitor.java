@@ -232,8 +232,18 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         StringBuilder computation = new StringBuilder();
 
         var headNode = node.getChild(0);
-        String objectName = getObjectName(headNode);
         String objectType = getObjectType(headNode);
+        String objectName = "";
+        String exprCode = "";
+        if (objectType.equals(FUNC_CALL.toString())){
+            var visitedFuncCall = visit(headNode);
+            code.append(visitedFuncCall.getComputation());
+            exprCode = visitedFuncCall.getCode();
+        }else{
+            objectName = getObjectName(headNode);
+        }
+
+
 
         var methodCalledName = node.get("id");
 
@@ -365,7 +375,11 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             }
         }
 
-        var funcOllir = invoke + "(" + objectName + ", \"" + methodCalledName + "\"" + params + ")"+returnType+END_STMT;
+        var input = "";
+        if (exprCode.isEmpty()) input = objectName;
+        else input = exprCode;
+
+        var funcOllir = invoke + "(" + input + ", \"" + methodCalledName + "\"" + params + ")"+returnType+END_STMT;
 
         if(!node.getParent().isInstance(DEFAULT_STMT)){
             StringBuilder temp = new StringBuilder (OptUtils.getTemp()+returnType);
