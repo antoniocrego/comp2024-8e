@@ -343,7 +343,26 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             returnType = OptUtils.toOllirType(new Type(table.getReturnType(methodCalledName).getName(),false));
         }
         else{
-            returnType = ".V";
+            var parent = node.getParent();
+            if (parent.getKind().equals(ASSIGN_STMT.toString())){
+                returnType = OptUtils.toOllirType(TypeUtils.getExprType(parent.getChild(0),table));
+            }
+            else if (parent.getKind().equals(FUNC_ARGS.toString())){
+                int k = -1;
+                for (int i = 0; i<parent.getNumChildren(); i++){
+                    if (parent.getChild(i).equals(node)){
+                        k = i;
+                        break;
+                    }
+                }
+                returnType = OptUtils.toOllirType(table.getParameters(methodCalledName).get(k).getType());
+            }
+            else if (parent.getKind().equals(RETURN_STMT.toString())){
+                returnType = OptUtils.toOllirType(table.getReturnType(methodName));
+            }
+            else{
+                returnType = ".V";
+            }
         }
 
         var funcOllir = invoke + "(" + objectName + ", \"" + methodCalledName + "\"" + params + ")"+returnType+END_STMT;

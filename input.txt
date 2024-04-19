@@ -1,22 +1,19 @@
 import A.c;
-import C;
 import B;
 
-class AssumeArguments extends B {
+class AssumeArguments {
     int a;
 
-    int doo(int h, AssumeArguments b, boolean c, int a){
+    int foo(){
+        B b;
+        int i;
+        i = 1;
+        b.println();
+        this.foo();
+        i = B.println(i+1);
+        B.foo(i);
         return 0;
     }
 
-    boolean funk(int k){
-        return true;
-    }
 
-    int foo(int d){
-        boolean i;
-        this.doo(1+a+2*3, new AssumeArguments(), this.funk(2), this.foo(2)+3);
-        i = this.funk(2);
-        return 0;
-    }
 }
