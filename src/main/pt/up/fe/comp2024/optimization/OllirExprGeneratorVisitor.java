@@ -141,6 +141,19 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         StringBuilder computation = new StringBuilder();
 
+        var methodNode = node.getAncestor(METHOD_DECL);
+        if(methodNode.isEmpty()) return new OllirExprResult("");
+
+        var methodName = methodNode.get().get("name");
+
+        for (Symbol symbol : table.getLocalVariables(methodName)){
+            if (symbol.getName().equals(id)) return new OllirExprResult(id+ollirType);
+        }
+
+        for (Symbol symbol : table.getParameters(methodName)){
+            if (symbol.getName().equals(id)) return new OllirExprResult(id+ollirType);
+        }
+
         for(Symbol symbol : table.getFields()){
             if(symbol.getName().equals(id)){
                 // It is a field!
