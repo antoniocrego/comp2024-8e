@@ -131,12 +131,16 @@ public class BooleanOperatorCheck extends AnalysisVisitor {
         megaTable.addAll(table.getParameters(currentMethod));
         megaTable.addAll(table.getFields());
 
-        if (booleanExpr.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-            varRefName = booleanExpr.getChild(0).get("name");
+        JmmNode bool1 = booleanExpr.getChild(0);
+        while(bool1.getKind().equals(Kind.PAREN_EXPR.toString())){
+            bool1 = bool1.getChild(0);
         }
-        else if (booleanExpr.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
-            var methodVariable = booleanExpr.getChild(0).getChild(0).get("name");
-            var methodName = booleanExpr.getChild(0).get("id");
+        if (bool1.getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+            varRefName = bool1.get("name");
+        }
+        else if (bool1.getKind().equals(Kind.FUNC_CALL.toString())){
+            var methodVariable = bool1.getChild(0).get("name");
+            var methodName = bool1.get("id");
             Type methodCallerType = new Type("", false);
             if (!table.getImports().contains(methodVariable)){
                 if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
@@ -166,12 +170,12 @@ public class BooleanOperatorCheck extends AnalysisVisitor {
             }
             found1 = true;
         }
-        else if (!(booleanExpr.getChild(0).getKind().equals(Kind.BOOLEAN.toString()) || booleanExpr.getChild(0).getKind().equals(Kind.BOOLEAN_EXPR.toString()) || booleanExpr.getChild(0).getKind().equals(Kind.COMPARISON_EXPR.toString()) || booleanExpr.getChild(0).getKind().equals(Kind.UNARY_OP.toString()))){
+        else if (!(bool1.getKind().equals(Kind.BOOLEAN.toString()) || bool1.getKind().equals(Kind.BOOLEAN_EXPR.toString()) || bool1.getKind().equals(Kind.COMPARISON_EXPR.toString()) || bool1.getKind().equals(Kind.UNARY_OP.toString()))){
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(booleanExpr),
                     NodeUtils.getColumn(booleanExpr),
-                    String.format("Unexpected primitive type '%s' in boolean expression.",booleanExpr.getChild(0).getKind()),
+                    String.format("Unexpected primitive type '%s' in boolean expression.", bool1.getKind()),
                     null)
             );
             return null;
@@ -179,12 +183,16 @@ public class BooleanOperatorCheck extends AnalysisVisitor {
         else{
             found1 = true;
         }
-        if (booleanExpr.getChild(1).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-            varRefName2 = booleanExpr.getChild(1).get("name");
+        JmmNode bool2 = booleanExpr.getChild(1);
+        while(bool2.getKind().equals(Kind.PAREN_EXPR.toString())){
+            bool2 = bool2.getChild(0);
         }
-        else if (booleanExpr.getChild(1).getKind().equals(Kind.FUNC_CALL.toString())){
-            var methodVariable = booleanExpr.getChild(1).getChild(0).get("name");
-            var methodName = booleanExpr.getChild(1).get("id");
+        if (bool2.getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+            varRefName2 = bool2.get("name");
+        }
+        else if (bool2.getKind().equals(Kind.FUNC_CALL.toString())){
+            var methodVariable = bool2.getChild(0).get("name");
+            var methodName = bool2.get("id");
             Type methodCallerType = new Type("", false);
             if (!table.getImports().contains(methodVariable)){
                 if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
@@ -214,12 +222,12 @@ public class BooleanOperatorCheck extends AnalysisVisitor {
             }
             found2 = true;
         }
-        else if (!(booleanExpr.getChild(1).getKind().equals(Kind.BOOLEAN.toString()) || booleanExpr.getChild(1).getKind().equals(Kind.BOOLEAN_EXPR.toString()) || booleanExpr.getChild(1).getKind().equals(Kind.COMPARISON_EXPR.toString()) || booleanExpr.getChild(1).getKind().equals(Kind.UNARY_OP.toString()))){
+        else if (!(bool2.getKind().equals(Kind.BOOLEAN.toString()) || bool2.getKind().equals(Kind.BOOLEAN_EXPR.toString()) || bool2.getKind().equals(Kind.COMPARISON_EXPR.toString()) || bool2.getKind().equals(Kind.UNARY_OP.toString()))){
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(booleanExpr),
                     NodeUtils.getColumn(booleanExpr),
-                    String.format("Unexpected primitive type '%s' in boolean expression.",booleanExpr.getChild(1).getKind()),
+                    String.format("Unexpected primitive type '%s' in boolean expression.", bool2.getKind()),
                     null)
             );
             return null;
