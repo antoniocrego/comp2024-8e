@@ -80,7 +80,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         var intType = new Type("boolean", false);
         String ollirIntType = OptUtils.toOllirType(intType);
         String boolNum = node.get("value").equals("true") ? "1" : "0";
-        String code = node.get("value") + ollirIntType;
+        String code = boolNum + ollirIntType;
         return new OllirExprResult(code);
     }
 
