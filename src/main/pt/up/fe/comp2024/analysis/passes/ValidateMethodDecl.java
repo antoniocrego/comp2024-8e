@@ -516,7 +516,9 @@ public class ValidateMethodDecl extends AnalysisVisitor {
         }
         else if (returnExpr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || returnExpr.getKind().equals(Kind.BINARY_EXPR.toString()) || returnExpr.getKind().equals(Kind.ARRAY_ACCESS.toString()) || returnExpr.getKind().equals(Kind.LENGTH_EXPR.toString())){
             if (!expectedReturnType.equals(new Type("int", false))){
-                var message = String.format("Return value of type '%s' given for function '%s' of return type '%s'","int",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
+                var message = "Return value of type '%s' given for function '%s' of return type '%s'";
+                if (expectedReturnType.isArray()) message += " array";
+                message = String.format(message, "int", returnStmt.getParent().get("name"),expectedReturnType.getName());
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(returnStmt),
@@ -529,7 +531,9 @@ public class ValidateMethodDecl extends AnalysisVisitor {
         }
         else if (returnExpr.getKind().equals(Kind.BOOLEAN.toString()) || returnExpr.getKind().equals(Kind.COMPARISON_EXPR.toString()) || returnExpr.getKind().equals(Kind.BOOLEAN_EXPR.toString()) || returnExpr.getKind().equals(Kind.UNARY_OP.toString())){
             if (!expectedReturnType.equals(new Type("boolean", false))){
-                var message = String.format("Return value of type '%s' given for function '%s' of return type '%s'","boolean",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
+                var message = "Return value of type '%s' given for function '%s' of return type '%s'";
+                if (expectedReturnType.isArray()) message += " array";
+                message = String.format(message, "boolean", returnStmt.getParent().get("name"),expectedReturnType.getName());
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(returnStmt),
@@ -542,7 +546,7 @@ public class ValidateMethodDecl extends AnalysisVisitor {
         }
         else if (returnExpr.getKind().equals(Kind.ARRAY_INIT.toString())){
             if (!expectedReturnType.equals(new Type("int", true))){
-                var message = String.format("Return value of type '%s' array given for function '%s' of return type '%s'","int",returnStmt.getParent().get("name"),returnStmt.getParent().getChild(0).get("id"));
+                var message = String.format("Return value of type '%s' array given for function '%s' of return type '%s'","int",returnStmt.getParent().get("name"),expectedReturnType.getName());
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(returnStmt),
