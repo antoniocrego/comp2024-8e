@@ -259,7 +259,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         if (!isStatic){
             boolean found = false;
 
-
             if (objectName.equals("this")){
                 callerType = table.getClassName();
             }
@@ -346,14 +345,69 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 if(argNode.getKind().equals(FUNC_CALL.getNodeName())) {
                     computation.append(visitedArgNode.getComputation());
                     String tempUsed = OptUtils.getTemp();
-                    Type thisType = TypeUtils.getExprType(argNode.getChild(1).getChild(0), table);
-                    String type = OptUtils.toOllirType(thisType);
 
-                    String tempName = tempUsed + type;
+                    var innerMethodVariable = node.getJmmChild(0).get("name");
+                    var innerMethodName = node.get("id");
+
+                    isStatic = false;
+                    for(String importt : table.getImports()){
+                        if(importt.equals(innerMethodVariable)){
+                            isStatic = true;
+                            break;
+                        }
+                    }
+
+                    var innerCallerType = "";
+
+                    if (!isStatic){
+                        boolean found = false;
+
+                        if (innerMethodVariable.equals("this")){
+                            innerCallerType = table.getClassName();
+                        }
+                        else{
+                            for (Symbol local : table.getLocalVariables(methodName)){
+                                if (local.getName().equals(innerMethodVariable)){
+                                    innerCallerType = local.getType().getName();
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (!found){
+                                for (Symbol parameter : table.getParameters(methodName)){
+                                    if (parameter.getName().equals(innerMethodVariable)){
+                                        innerCallerType = parameter.getType().getName();
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!found){
+                                for (Symbol field: table.getFields()){
+                                    if (field.getName().equals(innerMethodVariable)){
+                                        innerCallerType = field.getType().getName();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    var returnType = "";
+
+                    if(innerCallerType.equals(table.getClassName())){
+                        returnType = table.getReturnType(innerMethodName).getName();
+                    }
+
+                    String typeString = OptUtils.toOllirType(new Type(returnType,false));
+
+                    String tempName = tempUsed + typeString;
                     computation.append(tempName);
                     computation.append(SPACE);
                     computation.append(ASSIGN);
-                    computation.append(type);
+                    computation.append(typeString);
                     computation.append(SPACE);
                     computation.append(visitedArgNode.getCode());
                     code.append(tempName);
@@ -401,8 +455,62 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         var funcStm = node.getAncestor(FUNC_CALL);
         if(funcStm.isPresent()){
-            Type thisType = TypeUtils.getExprType(node.getJmmChild(1).getJmmChild(0), table);
-            String typeString = OptUtils.toOllirType(thisType);
+            var innerMethodVariable = node.getJmmChild(0).get("name");
+            var innerMethodName = node.get("id");
+
+            isStatic = false;
+            for(String importt : table.getImports()){
+                if(importt.equals(innerMethodVariable)){
+                    isStatic = true;
+                    break;
+                }
+            }
+
+            var innerCallerType = "";
+
+            if (!isStatic){
+                boolean found = false;
+
+                if (innerMethodVariable.equals("this")){
+                    innerCallerType = table.getClassName();
+                }
+                else{
+                    for (Symbol local : table.getLocalVariables(methodName)){
+                        if (local.getName().equals(innerMethodVariable)){
+                            innerCallerType = local.getType().getName();
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found){
+                        for (Symbol parameter : table.getParameters(methodName)){
+                            if (parameter.getName().equals(innerMethodVariable)){
+                                innerCallerType = parameter.getType().getName();
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!found){
+                        for (Symbol field: table.getFields()){
+                            if (field.getName().equals(innerMethodVariable)){
+                                innerCallerType = field.getType().getName();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            var returnType = "";
+
+            if(innerCallerType.equals(table.getClassName())){
+                returnType = table.getReturnType(innerMethodName).getName();
+            }
+
+            String typeString = OptUtils.toOllirType(new Type(returnType,false));
 
             code.append(typeString);
             code.append(END_STMT);
