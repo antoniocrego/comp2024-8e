@@ -184,29 +184,55 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         if(methodNode.isEmpty()) return new OllirExprResult("");
 
         var methodName = methodNode.get().get("name");
-        boolean isStatic = true;
+        boolean isStatic = false;
 
-        // Check in method locals
-        for(Symbol local : table.getLocalVariables(methodName)){
-            if(local.getName().equals(objectName)){
-
-                isStatic = false;
+        // Check in imports
+        for(String importt : table.getImports()){
+            if(importt.equals(objectName)){
+                isStatic = true;
                 break;
             }
         }
 
-        // Check in class methods
-        for(String method : table.getMethods()){
-            if(method.equals(methodCalledName)){
+        String callerType = "";
 
-                //If the method is calling itself only add "this" else "this.ClassName"
-                if(!method.equals(methodName)){
-                    objectName = objectName + "." + table.getClassName();
+        // Check in class methods
+        if (!isStatic){
+            boolean found = false;
+
+
+            if (objectName.equals("this")){
+                callerType = table.getClassName();
+            }
+            else{
+                for (Symbol local : table.getLocalVariables(methodName)){
+                    if (local.getName().equals(objectName)){
+                        callerType = local.getType().getName();
+                        found = true;
+                        break;
+                    }
                 }
 
-                isStatic = false;
-                break;
+                if (!found){
+                    for (Symbol parameter : table.getParameters(methodName)){
+                        if (parameter.getName().equals(objectName)){
+                            callerType = parameter.getType().getName();
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!found){
+                    for (Symbol field: table.getFields()){
+                        if (field.getName().equals(objectName)){
+                            callerType = field.getType().getName();
+                            break;
+                        }
+                    }
+                }
             }
+            objectName = objectName + "." + callerType;
         }
 
         // Check in class fields
@@ -280,6 +306,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         code.append(")");
+
+        if (callerType.equals(table.getClassName())){
+            code.append(OptUtils.toOllirType(table.getReturnType(methodCalledName)));
+            code.append(END_STMT);
+            return new OllirExprResult(code.toString(), computation);
+        }
 
         var assignStm = node.getAncestor(ASSIGN_STMT);
         var returnStm = node.getAncestor(RETURN_STMT);

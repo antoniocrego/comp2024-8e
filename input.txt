@@ -1,12 +1,17 @@
-import io;
+import A.c;
+import B;
 
-class Simple {
+class AssumeArguments {
+    int a;
 
-    public int add(int a, int b){
-
-    }
-
-    public static void main(String[] args) {
-        io.println(new Simple().add(10, 3) + 3);
+    int foo(){
+        B b;
+        int i;
+        i=1;
+        b.println();
+        this.foo();
+        B.println(i+1);
+        B.foo(i);
+        return 0;
     }
 }
