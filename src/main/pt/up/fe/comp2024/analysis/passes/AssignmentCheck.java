@@ -94,9 +94,35 @@ public class AssignmentCheck extends AnalysisVisitor {
             assignExpr = assign.getChild(0);
         }
         if (assignExpr.getKind().equals(Kind.FUNC_CALL.toString())) {
-            var methodVariable = assignExpr.getChild(0).get("name");
+            var methodVariable = "";
             var methodName = assignExpr.get("id");
             Type methodCallerType = new Type("", false);
+            if (!assignExpr.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
+                methodVariable = assignExpr.getChild(0).get("name");
+            }
+            else{
+                var callingMethod = assignExpr.getChild(0);
+                while(callingMethod.getKind().equals(Kind.FUNC_CALL.toString())){
+                    callingMethod = callingMethod.getChild(0);
+                }
+                if (!callingMethod.getKind().equals(Kind.VAR_REF_EXPR.toString())){
+                    return null;
+                }
+                if (table.getImports().contains(callingMethod.get("name"))){
+                    return null;
+                }
+                else{
+                    while(callingMethod.getParent().getKind().equals(Kind.FUNC_CALL.toString())){
+                        var nextReturn = table.getReturnType(callingMethod.getParent().get("id"));
+                        if (!nextReturn.equals(new Type(table.getClassName(), false))){
+                            return null;
+                        }
+                        callingMethod = callingMethod.getParent();
+                        methodCallerType = nextReturn;
+                    }
+                }
+            }
+
             if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
             else if (table.getImports().contains(methodVariable)) return null;
             else {

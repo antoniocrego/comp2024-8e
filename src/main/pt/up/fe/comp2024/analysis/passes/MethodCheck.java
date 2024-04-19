@@ -41,9 +41,48 @@ public class MethodCheck extends AnalysisVisitor {
 
         // Check if exists a parameter or variable declaration with the same name as the variable reference
 
-        var methodVariable = funcCall.getChild(0).get("name");
+        var methodVariable = "";
         var methodName = funcCall.get("id");
         Type methodCallerType = new Type("", false);
+        if (!funcCall.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
+            methodVariable = funcCall.getChild(0).get("name");
+        }
+        else{
+            var callingMethod = funcCall.getChild(0);
+            while(callingMethod.getKind().equals(Kind.FUNC_CALL.toString())){
+                callingMethod = callingMethod.getChild(0);
+            }
+            if (!callingMethod.getKind().equals(Kind.VAR_REF_EXPR.toString())){
+                return null;
+            }
+            if (table.getImports().contains(callingMethod.get("name"))){
+                return null;
+            }
+            else{
+                while(callingMethod.getParent().getKind().equals(Kind.FUNC_CALL.toString())){
+                    var nextReturn = table.getReturnType(callingMethod.getParent().get("id"));
+                    if (!nextReturn.equals(new Type(table.getClassName(), false))){
+                        if (nextReturn.isArray() || nextReturn.getName().equals("int") || nextReturn.getName().equals("boolean")){
+                            var message = "Calling function from variable of type '%s'";
+                            if (nextReturn.isArray()) message+=" array";
+                            if (nextReturn.getName().equals("int") || nextReturn.getName().equals("boolean")) message+=", which is not an object";
+                            message = String.format(message, nextReturn.getName());
+                            addReport(Report.newError(
+                                    Stage.SEMANTIC,
+                                    NodeUtils.getLine(funcCall),
+                                    NodeUtils.getColumn(funcCall),
+                                    message,
+                                    null)
+                            );
+                        }
+                        return null;
+                    }
+                    callingMethod = callingMethod.getParent();
+                    methodCallerType = nextReturn;
+                }
+            }
+        }
+
         if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
         else if (table.getImports().contains(methodVariable)) return null;
         else {

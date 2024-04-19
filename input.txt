@@ -1,19 +1,15 @@
-import A.c;
 import B;
-
-class AssumeArguments {
-    int a;
-
-    int foo(){
-        B b;
-        int i;
-        i = 1;
-        b.println();
-        this.foo();
-        i = B.println(i+1);
-        B.foo(i);
+class A {
+    public int foo(B b, boolean a) {
         return 0;
     }
-
-
+    public B bar() {
+        return new B();
+    }
+    public int testing() {
+        boolean p2;
+        p2 = this.bar().another();
+        this.foo(this.bar(), p2);
+        return 0;
+    }
 }

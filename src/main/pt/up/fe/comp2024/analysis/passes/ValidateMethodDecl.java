@@ -182,9 +182,34 @@ public class ValidateMethodDecl extends AnalysisVisitor {
 
         // Check if exists a parameter or variable declaration with the same name as the variable reference
 
-        var methodVariable = funcCall.getChild(0).get("name");
+        var methodVariable = "";
         var methodName = funcCall.get("id");
         Type methodCallerType = new Type("", false);
+        if (!funcCall.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
+            methodVariable = funcCall.getChild(0).get("name");
+        }
+        else{
+            var callingMethod = funcCall.getChild(0);
+            while(callingMethod.getKind().equals(Kind.FUNC_CALL.toString())){
+                callingMethod = callingMethod.getChild(0);
+            }
+            if (!callingMethod.getKind().equals(Kind.VAR_REF_EXPR.toString())){
+                return null;
+            }
+            if (table.getImports().contains(callingMethod.get("name"))){
+                return null;
+            }
+            else{
+                while(callingMethod.getParent().getKind().equals(Kind.FUNC_CALL.toString())){
+                    var nextReturn = table.getReturnType(callingMethod.getParent().get("id"));
+                    if (!nextReturn.equals(new Type(table.getClassName(), false))){
+                        return null;
+                    }
+                    callingMethod = callingMethod.getParent();
+                    methodCallerType = nextReturn;
+                }
+            }
+        }
         var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
         megaTable.addAll(table.getParameters(currentMethod));
         megaTable.addAll(table.getFields());
@@ -236,12 +261,36 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                                     }
                                 }
                             } else if (givenParameters.getChild(i).getKind().equals(Kind.FUNC_CALL.toString())) { // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
-                                var methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
+                                var methodVariableInner = "";
                                 var methodNameInner = givenParameters.getChild(i).get("id");
                                 Type methodCallerTypeInner = new Type("", false);
-                                if (methodVariableInner.equals("this"))
-                                    methodCallerTypeInner = new Type(table.getClassName(), false);
-                                else if (!table.getImports().contains(methodVariableInner)) {
+                                if (!givenParameters.getChild(i).getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
+                                    methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
+                                }
+                                else{
+                                    var callingMethod = givenParameters.getChild(i).getChild(0);
+                                    while(callingMethod.getKind().equals(Kind.FUNC_CALL.toString())){
+                                        callingMethod = callingMethod.getChild(0);
+                                    }
+                                    if (!callingMethod.getKind().equals(Kind.VAR_REF_EXPR.toString())){
+                                        return null;
+                                    }
+                                    if (table.getImports().contains(callingMethod.get("name"))){
+                                        return null;
+                                    }
+                                    else{
+                                        while(callingMethod.getParent().getKind().equals(Kind.FUNC_CALL.toString())){
+                                            var nextReturn = table.getReturnType(callingMethod.getParent().get("id"));
+                                            if (!nextReturn.equals(new Type(table.getClassName(), false))){
+                                                continue;
+                                            }
+                                            callingMethod = callingMethod.getParent();
+                                            methodCallerTypeInner = nextReturn;
+                                        }
+                                    }
+                                }
+                                if (methodVariableInner.equals("this")) methodCallerTypeInner = new Type(table.getClassName(), false);
+                                else if (!methodVariableInner.isEmpty() && !table.getImports().contains(methodVariableInner)) {
                                     for (var element : megaTable) {
                                         if (element.getName().equals(methodVariableInner)) {
                                             methodCallerTypeInner = element.getType();
@@ -323,12 +372,36 @@ public class ValidateMethodDecl extends AnalysisVisitor {
                             }
                         }
                     } else if (givenParameters.getChild(i).getKind().equals(Kind.FUNC_CALL.toString())) { // this is archaic, could be better regarding implements, doesnt consider calling funcs like "this.foo()" that dont exist, even without extends
-                        var methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
+                        var methodVariableInner = "";
                         var methodNameInner = givenParameters.getChild(i).get("id");
                         Type methodCallerTypeInner = new Type("", false);
-                        if (methodVariableInner.equals("this"))
-                            methodCallerTypeInner = new Type(table.getClassName(), false);
-                        else if (!table.getImports().contains(methodVariableInner)) {
+                        if (!givenParameters.getChild(i).getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
+                            methodVariableInner = givenParameters.getChild(i).getChild(0).get("name");
+                        }
+                        else{
+                            var callingMethod = givenParameters.getChild(i).getChild(0);
+                            while(callingMethod.getKind().equals(Kind.FUNC_CALL.toString())){
+                                callingMethod = callingMethod.getChild(0);
+                            }
+                            if (!callingMethod.getKind().equals(Kind.VAR_REF_EXPR.toString())){
+                                return null;
+                            }
+                            if (table.getImports().contains(callingMethod.get("name"))){
+                                return null;
+                            }
+                            else{
+                                while(callingMethod.getParent().getKind().equals(Kind.FUNC_CALL.toString())){
+                                    var nextReturn = table.getReturnType(callingMethod.getParent().get("id"));
+                                    if (!nextReturn.equals(new Type(table.getClassName(), false))){
+                                        continue;
+                                    }
+                                    callingMethod = callingMethod.getParent();
+                                    methodCallerTypeInner = nextReturn;
+                                }
+                            }
+                        }
+                        if (methodVariableInner.equals("this")) methodCallerTypeInner = new Type(table.getClassName(), false);
+                        else if (!methodVariableInner.isEmpty() && !table.getImports().contains(methodVariableInner)) {
                             for (var element : megaTable) {
                                 if (element.getName().equals(methodVariableInner)) {
                                     methodCallerTypeInner = element.getType();
@@ -390,9 +463,34 @@ public class ValidateMethodDecl extends AnalysisVisitor {
             }
         }
         else if (returnExpr.getKind().equals(Kind.FUNC_CALL.toString())){
-            var methodVariable = returnExpr.getChild(0).get("name");
+            var methodVariable = "";
             var methodName = returnExpr.get("id");
             Type methodCallerType = new Type("", false);
+            if (!returnExpr.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
+                methodVariable = returnExpr.getChild(0).get("name");
+            }
+            else{
+                var callingMethod = returnExpr.getChild(0);
+                while(callingMethod.getKind().equals(Kind.FUNC_CALL.toString())){
+                    callingMethod = callingMethod.getChild(0);
+                }
+                if (!callingMethod.getKind().equals(Kind.VAR_REF_EXPR.toString())){
+                    return null;
+                }
+                if (table.getImports().contains(callingMethod.get("name"))){
+                    return null;
+                }
+                else{
+                    while(callingMethod.getParent().getKind().equals(Kind.FUNC_CALL.toString())){
+                        var nextReturn = table.getReturnType(callingMethod.getParent().get("id"));
+                        if (!nextReturn.equals(new Type(table.getClassName(), false))){
+                            return null;
+                        }
+                        callingMethod = callingMethod.getParent();
+                        methodCallerType = nextReturn;
+                    }
+                }
+            }
             var megaTable = new ArrayList<>(table.getLocalVariables(currentMethod));
             megaTable.addAll(table.getParameters(currentMethod));
             megaTable.addAll(table.getFields());
