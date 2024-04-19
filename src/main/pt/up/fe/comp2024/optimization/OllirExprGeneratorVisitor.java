@@ -261,11 +261,15 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
             if (objectName.equals("this")){
                 callerType = table.getClassName();
+                String type = OptUtils.toOllirType(new Type(callerType,false));
+                objectName = objectName + type;
             }
             else{
                 for (Symbol local : table.getLocalVariables(methodName)){
                     if (local.getName().equals(objectName)){
                         callerType = local.getType().getName();
+                        String type = OptUtils.toOllirType(new Type(callerType,false));
+                        objectName = objectName + type;
                         found = true;
                         break;
                     }
@@ -275,6 +279,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                     for (Symbol parameter : table.getParameters(methodName)){
                         if (parameter.getName().equals(objectName)){
                             callerType = parameter.getType().getName();
+                            String type = OptUtils.toOllirType(new Type(callerType,false));
+                            objectName = objectName + type;
                             found = true;
                             break;
                         }
@@ -285,36 +291,28 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                     for (Symbol field: table.getFields()){
                         if (field.getName().equals(objectName)){
                             callerType = field.getType().getName();
+                            String tempUsed = OptUtils.getTemp();
+                            String type = OptUtils.toOllirType(field.getType());
+                            computation.append(tempUsed);
+                            computation.append(type);
+                            computation.append(SPACE);
+                            computation.append(ASSIGN);
+                            computation.append(type);
+                            computation.append(" getfield(this, ");
+                            computation.append(objectName);
+                            computation.append(type);
+                            computation.append(")");
+                            computation.append(type);
+                            computation.append(END_STMT);
+
+                            objectName = tempUsed + type;
+
                             break;
                         }
                     }
                 }
             }
-            objectName = objectName + "." + callerType;
-        }
 
-        // Check in class fields
-        for(Symbol field : table.getFields()){
-            if(field.getName().equals(objectName)){
-                String tempUsed = OptUtils.getTemp();
-                String type = OptUtils.toOllirType(field.getType());
-                computation.append(tempUsed);
-                computation.append(type);
-                computation.append(SPACE);
-                computation.append(ASSIGN);
-                computation.append(type);
-                computation.append(" getfield(this, ");
-                computation.append(objectName);
-                computation.append(type);
-                computation.append(")");
-                computation.append(type);
-                computation.append(END_STMT);
-
-                objectName = tempUsed + type;
-
-                isStatic = false;
-                break;
-            }
         }
 
         if(objectType.equals(NEW_CLASS.getNodeName())){
@@ -327,205 +325,37 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             invoke = "invokestatic";
         }
 
-        code.append(invoke);
-        code.append("(");
-
-        code.append(objectName);
-        code.append(", ");
-
-        code.append('"');
-        code.append(methodCalledName);
-        code.append('"');
+        StringBuilder params = new StringBuilder();
 
         // Parsing parameters
         if(node.getChildren().size() > 1){
             for(JmmNode argNode : node.getChild(1).getChildren()){
                 var visitedArgNode = visit(argNode);
-                code.append(", ");
-                if(argNode.getKind().equals(FUNC_CALL.getNodeName())) {
-                    computation.append(visitedArgNode.getComputation());
-                    String tempUsed = OptUtils.getTemp();
-
-                    var innerMethodVariable = node.getJmmChild(0).get("name");
-                    var innerMethodName = node.get("id");
-
-                    isStatic = false;
-                    for(String importt : table.getImports()){
-                        if(importt.equals(innerMethodVariable)){
-                            isStatic = true;
-                            break;
-                        }
-                    }
-
-                    var innerCallerType = "";
-
-                    if (!isStatic){
-                        boolean found = false;
-
-                        if (innerMethodVariable.equals("this")){
-                            innerCallerType = table.getClassName();
-                        }
-                        else{
-                            for (Symbol local : table.getLocalVariables(methodName)){
-                                if (local.getName().equals(innerMethodVariable)){
-                                    innerCallerType = local.getType().getName();
-                                    found = true;
-                                    break;
-                                }
-                            }
-
-                            if (!found){
-                                for (Symbol parameter : table.getParameters(methodName)){
-                                    if (parameter.getName().equals(innerMethodVariable)){
-                                        innerCallerType = parameter.getType().getName();
-                                        found = true;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (!found){
-                                for (Symbol field: table.getFields()){
-                                    if (field.getName().equals(innerMethodVariable)){
-                                        innerCallerType = field.getType().getName();
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    var returnType = "";
-
-                    if(innerCallerType.equals(table.getClassName())){
-                        returnType = table.getReturnType(innerMethodName).getName();
-                    }
-
-                    String typeString = OptUtils.toOllirType(new Type(returnType,false));
-
-                    String tempName = tempUsed + typeString;
-                    computation.append(tempName);
-                    computation.append(SPACE);
-                    computation.append(ASSIGN);
-                    computation.append(typeString);
-                    computation.append(SPACE);
-                    computation.append(visitedArgNode.getCode());
-                    code.append(tempName);
-                }else{
-                    computation.append(visitedArgNode.getComputation());
-                    code.append(visitedArgNode.getCode());
-                }
+                params.append(", ");
+                code.append(visitedArgNode.getComputation());
+                params.append(visitedArgNode.getCode());
             }
         }
 
-        code.append(")");
+        var returnType = "";
 
-        var assignStm = node.getAncestor(ASSIGN_STMT);
-        var returnStm = node.getAncestor(RETURN_STMT);
-        JmmNode parent = null;
-        if(assignStm.isPresent()) parent = assignStm.get();
-        if(returnStm.isPresent()) parent = returnStm.get();
-
-        if(parent != null){
-            String typeString = "";
-            if(assignStm.isPresent()) {
-                Type thisType = TypeUtils.getExprType(assignStm.get().getJmmChild(0), table);
-                typeString = OptUtils.toOllirType(thisType);
-            }
-            if(returnStm.isPresent()){
-                Type retType = table.getReturnType(methodName);
-                typeString = OptUtils.toOllirType(retType);
-            }
-
-            code.append(typeString);
-
-            String tempToUse = OptUtils.getTemp();
-            computation.append(tempToUse);
-            computation.append(typeString);
-            computation.append(SPACE);
-            computation.append(ASSIGN);
-            computation.append(typeString);
-            computation.append(SPACE);
-            computation.append(code);
-            computation.append(END_STMT);
-
-            var newCode = tempToUse + typeString;
-            return new OllirExprResult(newCode, computation);
+        if(callerType.equals(table.getClassName())){
+            returnType = OptUtils.toOllirType(new Type(table.getReturnType(methodCalledName).getName(),false));
+        }
+        else{
+            returnType = ".V";
         }
 
-        var funcStm = node.getAncestor(FUNC_CALL);
-        if(funcStm.isPresent()){
-            var innerMethodVariable = node.getJmmChild(0).get("name");
-            var innerMethodName = node.get("id");
+        var funcOllir = invoke + "(" + objectName + ", \"" + methodCalledName + "\"" + params + ")"+returnType+END_STMT;
 
-            isStatic = false;
-            for(String importt : table.getImports()){
-                if(importt.equals(innerMethodVariable)){
-                    isStatic = true;
-                    break;
-                }
-            }
-
-            var innerCallerType = "";
-
-            if (!isStatic){
-                boolean found = false;
-
-                if (innerMethodVariable.equals("this")){
-                    innerCallerType = table.getClassName();
-                }
-                else{
-                    for (Symbol local : table.getLocalVariables(methodName)){
-                        if (local.getName().equals(innerMethodVariable)){
-                            innerCallerType = local.getType().getName();
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (!found){
-                        for (Symbol parameter : table.getParameters(methodName)){
-                            if (parameter.getName().equals(innerMethodVariable)){
-                                innerCallerType = parameter.getType().getName();
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!found){
-                        for (Symbol field: table.getFields()){
-                            if (field.getName().equals(innerMethodVariable)){
-                                innerCallerType = field.getType().getName();
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-
-            var returnType = "";
-
-            if(innerCallerType.equals(table.getClassName())){
-                returnType = table.getReturnType(innerMethodName).getName();
-            }
-
-            String typeString = OptUtils.toOllirType(new Type(returnType,false));
-
-            code.append(typeString);
-            code.append(END_STMT);
-
-            return new OllirExprResult(code.toString(), computation);
+        if(!node.getParent().isInstance(DEFAULT_STMT)){
+            StringBuilder temp = new StringBuilder (OptUtils.getTemp()+returnType);
+            computation = code;
+            computation.append(temp+SPACE+ASSIGN+returnType+SPACE+funcOllir);
+            code = temp;
+        }else{
+            code.append(funcOllir);
         }
-
-        if (callerType.equals(table.getClassName())){
-            code.append(OptUtils.toOllirType(table.getReturnType(methodCalledName)));
-            code.append(END_STMT);
-            return new OllirExprResult(code.toString(), computation);
-        }
-
-        code.append(".V");
-        code.append(END_STMT);
 
         return new OllirExprResult(code.toString(), computation);
     }

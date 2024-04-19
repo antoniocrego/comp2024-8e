@@ -9,12 +9,14 @@ class AssumeArguments extends B {
         return 0;
     }
 
-    int funk(int k){
-        return 3;
+    boolean funk(int k){
+        return true;
     }
 
     int foo(int d){
-        this.doo(1+a+2*3, new AssumeArguments(), this.funk(), this.foo(2)+3);
+        boolean i;
+        this.doo(1+a+2*3, new AssumeArguments(), this.funk(2), this.foo(2)+3);
+        i = this.funk(2);
         return 0;
     }
 }
