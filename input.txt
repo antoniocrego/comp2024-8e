@@ -5,12 +5,12 @@ import B;
 class AssumeArguments extends B {
     int a;
 
-    int doo(int h){
+    int doo(int h, AssumeArguments b, boolean c, int a){
         return 0;
     }
 
     int foo(int d){
-        this.doo(1+a+2*3);
+        this.doo(1+a+2*3, new AssumeArguments(), true, 1+(2*3));
         return 0;
     }
 }

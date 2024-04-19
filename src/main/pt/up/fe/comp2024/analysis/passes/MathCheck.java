@@ -48,12 +48,22 @@ public class MathCheck extends AnalysisVisitor {
         megaTable.addAll(table.getParameters(currentMethod));
         megaTable.addAll(table.getFields());
 
-        if (binaryExpr.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-            varRefName = binaryExpr.getChild(0).get("name");
+        JmmNode lhs = binaryExpr.getChild(0);
+        JmmNode rhs = binaryExpr.getChild(1);
+
+        while (lhs.getKind().equals(Kind.PAREN_EXPR.toString())){
+            lhs = lhs.getChild(0);
         }
-        else if (binaryExpr.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
-            var methodVariable = binaryExpr.getChild(0).getChild(0).get("name");
-            var methodName = binaryExpr.getChild(0).get("id");
+        while (rhs.getKind().equals(Kind.PAREN_EXPR.toString())){
+            rhs = rhs.getChild(0);
+        }
+
+        if (lhs.getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+            varRefName = lhs.get("name");
+        }
+        else if (lhs.getKind().equals(Kind.FUNC_CALL.toString())){
+            var methodVariable = lhs.getChild(0).get("name");
+            var methodName = lhs.get("id");
             Type methodCallerType = new Type("", false);
             if (!table.getImports().contains(methodVariable)){
                 if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
@@ -83,12 +93,12 @@ public class MathCheck extends AnalysisVisitor {
             }
             found1 = true;
         }
-        else if (!(binaryExpr.getChild(0).getKind().equals(Kind.INTEGER_LITERAL.toString()) || binaryExpr.getChild(0).getKind().equals(Kind.ARRAY_ACCESS.toString()) || binaryExpr.getChild(0).getKind().equals(Kind.LENGTH_EXPR.toString()))){
+        else if (!(lhs.getKind().equals(Kind.INTEGER_LITERAL.toString()) || lhs.getKind().equals(Kind.ARRAY_ACCESS.toString()) || lhs.getKind().equals(Kind.LENGTH_EXPR.toString()) || lhs.getKind().equals(Kind.BINARY_EXPR.toString()))){
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(binaryExpr),
                     NodeUtils.getColumn(binaryExpr),
-                    String.format("Unexpected primitive type '%s' in binary expression.",binaryExpr.getChild(0).getKind()),
+                    String.format("Unexpected primitive type '%s' in binary expression.", lhs.getKind()),
                     null)
             );
             return null;
@@ -96,12 +106,12 @@ public class MathCheck extends AnalysisVisitor {
         else{
             found1 = true;
         }
-        if (binaryExpr.getChild(1).getKind().equals(Kind.VAR_REF_EXPR.toString())) {
-            varRefName2 = binaryExpr.getChild(1).get("name");
+        if (rhs.getKind().equals(Kind.VAR_REF_EXPR.toString())) {
+            varRefName2 = rhs.get("name");
         }
-        else if (binaryExpr.getChild(1).getKind().equals(Kind.FUNC_CALL.toString())){
-            var methodVariable = binaryExpr.getChild(1).getChild(0).get("name");
-            var methodName = binaryExpr.getChild(1).get("id");
+        else if (rhs.getKind().equals(Kind.FUNC_CALL.toString())){
+            var methodVariable = rhs.getChild(0).get("name");
+            var methodName = rhs.get("id");
             Type methodCallerType = new Type("", false);
             if (!table.getImports().contains(methodVariable)){
                 if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
@@ -131,12 +141,12 @@ public class MathCheck extends AnalysisVisitor {
             }
             found2 = true;
         }
-        else if (!(binaryExpr.getChild(1).getKind().equals(Kind.INTEGER_LITERAL.toString()) || binaryExpr.getChild(1).getKind().equals(Kind.ARRAY_ACCESS.toString()))){
+        else if (!(rhs.getKind().equals(Kind.INTEGER_LITERAL.toString()) || rhs.getKind().equals(Kind.ARRAY_ACCESS.toString()) || rhs.getKind().equals(Kind.LENGTH_EXPR.toString()) || rhs.getKind().equals(Kind.BINARY_EXPR.toString()))){
             addReport(Report.newError(
                     Stage.SEMANTIC,
                     NodeUtils.getLine(binaryExpr),
                     NodeUtils.getColumn(binaryExpr),
-                    String.format("Unexpected primitive type '%s' in binary expression.", binaryExpr.getChild(1).getKind()),
+                    String.format("Unexpected primitive type '%s' in binary expression.", rhs.getKind()),
                     null)
             );
             return null;
