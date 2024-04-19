@@ -303,17 +303,17 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                             callerType = field.getType().getName();
                             String tempUsed = OptUtils.getTemp();
                             String type = OptUtils.toOllirType(field.getType());
-                            computation.append(tempUsed);
-                            computation.append(type);
-                            computation.append(SPACE);
-                            computation.append(ASSIGN);
-                            computation.append(type);
-                            computation.append(" getfield(this, ");
-                            computation.append(objectName);
-                            computation.append(type);
-                            computation.append(")");
-                            computation.append(type);
-                            computation.append(END_STMT);
+                            code.append(tempUsed);
+                            code.append(type);
+                            code.append(SPACE);
+                            code.append(ASSIGN);
+                            code.append(type);
+                            code.append(" getfield(this, ");
+                            code.append(objectName);
+                            code.append(type);
+                            code.append(")");
+                            code.append(type);
+                            code.append(END_STMT);
 
                             objectName = tempUsed + type;
 
@@ -327,7 +327,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         if(objectType.equals(NEW_CLASS.getNodeName())){
             var visitedHead = visit(headNode);
-            computation.append(visitedHead.getComputation());
+            code.append(visitedHead.getComputation());
             objectName = visitedHead.getCode();
         }
 
@@ -365,7 +365,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                         break;
                     }
                 }
-                returnType = OptUtils.toOllirType(table.getParameters(methodCalledName).get(k).getType());
+                returnType = OptUtils.toOllirType(table.getParameters(parent.getParent().get("id")).get(k).getType());
             }
             else if (parent.getKind().equals(RETURN_STMT.toString())){
                 returnType = OptUtils.toOllirType(table.getReturnType(methodName));
