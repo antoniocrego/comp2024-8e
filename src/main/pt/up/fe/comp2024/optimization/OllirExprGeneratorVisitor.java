@@ -307,12 +307,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         code.append(")");
 
-        if (callerType.equals(table.getClassName())){
-            code.append(OptUtils.toOllirType(table.getReturnType(methodCalledName)));
-            code.append(END_STMT);
-            return new OllirExprResult(code.toString(), computation);
-        }
-
         var assignStm = node.getAncestor(ASSIGN_STMT);
         var returnStm = node.getAncestor(RETURN_STMT);
         JmmNode parent = null;
@@ -354,6 +348,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             code.append(typeString);
             code.append(END_STMT);
 
+            return new OllirExprResult(code.toString(), computation);
+        }
+
+        if (callerType.equals(table.getClassName())){
+            code.append(OptUtils.toOllirType(table.getReturnType(methodCalledName)));
+            code.append(END_STMT);
             return new OllirExprResult(code.toString(), computation);
         }
 
