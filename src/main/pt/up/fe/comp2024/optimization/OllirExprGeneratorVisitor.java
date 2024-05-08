@@ -37,6 +37,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(FUNC_CALL, this::visitFuncCall);
         addVisit(NEW_CLASS, this::visitNewClass);
         addVisit(NEW_ARRAY, this::visitNewArray);
+        addVisit(LENGTH_EXPR, this::visitArrayLengthExpr);
+        addVisit(ARRAY_ACCESS, this::visitArrayAccessExpr);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -86,6 +88,64 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             code.append(arrayType);
 
             return new OllirExprResult(code.toString(), "");
+    }
+
+    private OllirExprResult visitArrayLengthExpr(JmmNode node, Void unused){
+        StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
+
+        String arrayType = visit(node.getJmmChild(0)).getCode();
+        String intType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), false));
+
+        code.append(OptUtils.getTemp());
+        code.append(intType);
+
+        computation.append(code);
+        computation.append(SPACE);
+        computation.append(ASSIGN);
+        computation.append(intType);
+        computation.append(SPACE);
+        computation.append("arraylength(").append(arrayType).append(")");
+        computation.append(intType);
+        computation.append(END_STMT);
+
+        return new OllirExprResult(code.toString(), computation);
+    }
+
+    private OllirExprResult visitArrayAccessExpr(JmmNode node, Void unused){
+        StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
+
+        JmmNode arrayVarNode = node.getJmmChild(0);
+        String type = TypeUtils.getExprType(arrayVarNode, table).getName();
+        String arrayVarType = OptUtils.toOllirType(new Type(type, false)); //ganda penso
+        JmmNode indexNode = node.getJmmChild(1);
+        OllirExprResult index = visit(indexNode);
+
+        computation.append(index.getComputation());
+
+        code.append(arrayVarNode.get("name"));
+        code.append("[");
+        code.append(index.getCode());
+        code.append("]");
+        code.append(arrayVarType);
+
+        if(node.getParent().getKind().equals(ARRAY_ACCESS.getNodeName())){
+            String temp = OptUtils.getTemp();
+            String tempType = OptUtils.toOllirType(new Type(type, false));
+            computation.append(temp);
+            computation.append(tempType);
+            computation.append(SPACE);
+            computation.append(ASSIGN);
+            computation.append(tempType);
+            computation.append(SPACE);
+            computation.append(code);
+            computation.append(END_STMT);
+
+            code = new StringBuilder(temp + tempType);
+        }
+
+        return new OllirExprResult(code.toString(), computation);
     }
 
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
@@ -354,8 +414,23 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             for(JmmNode argNode : node.getChild(1).getChildren()){
                 var visitedArgNode = visit(argNode);
                 params.append(", ");
-                code.append(visitedArgNode.getComputation());
-                params.append(visitedArgNode.getCode());
+
+                // When accessing arrays, create a temporary variable
+                if(argNode.getKind().equals(ARRAY_ACCESS.getNodeName())) {
+                    String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getExprType(argNode,table));
+                    computation.append(visitedArgNode.getComputation());
+                    computation.append(temp);
+                    computation.append(SPACE);
+                    computation.append(ASSIGN);
+                    computation.append(OptUtils.toOllirType(TypeUtils.getExprType(argNode,table)));
+                    computation.append(SPACE);
+                    computation.append(visitedArgNode.getCode());
+                    computation.append(END_STMT);
+                    params.append(temp);
+                }else {
+                    code.append(visitedArgNode.getComputation());
+                    params.append(visitedArgNode.getCode());
+                }
             }
         }
 

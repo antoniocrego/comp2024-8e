@@ -73,24 +73,25 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder();
 
-        var name = node.getJmmChild(0).get("name");
-        for(Symbol field : table.getFields()){
-            if(field.getName().equals(name)){
-                var rhs = exprVisitor.visit(node.getJmmChild(1));
-                code.append(rhs.getComputation());
-                code.append("putfield(this, ");
-                code.append(name);
-                Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
-                String typeString = OptUtils.toOllirType(thisType);
-                code.append(typeString);
-                code.append(", ");
-                code.append(rhs.getCode());
-                code.append(").V;\n");
+        if(!node.getJmmChild(0).getKind().equals("ArrayAccess")){
+            var name = node.getJmmChild(0).get("name");
+            for(Symbol field : table.getFields()){
+                if(field.getName().equals(name)){
+                    var rhs = exprVisitor.visit(node.getJmmChild(1));
+                    code.append(rhs.getComputation());
+                    code.append("putfield(this, ");
+                    code.append(name);
+                    Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
+                    String typeString = OptUtils.toOllirType(thisType);
+                    code.append(typeString);
+                    code.append(", ");
+                    code.append(rhs.getCode());
+                    code.append(").V;\n");
 
-                return code.toString();
+                    return code.toString();
+                }
             }
         }
-
 
         var lhs = exprVisitor.visit(node.getJmmChild(0));
         var rhs = exprVisitor.visit(node.getJmmChild(1));
