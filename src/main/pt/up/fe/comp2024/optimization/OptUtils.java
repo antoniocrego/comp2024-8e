@@ -13,10 +13,19 @@ import static pt.up.fe.comp2024.ast.Kind.TYPE;
 
 public class OptUtils {
     private static int tempNumber = -1;
+    private static Integer ifNumber = 0;
+    private static Integer whileNumber = 0;
 
     public static String getTemp() {
 
         return getTemp("tmp");
+    }
+
+    public static String getIfNumber() {
+        return String.valueOf(++ifNumber);
+    }
+    public static String getWhileNumber() {
+        return String.valueOf(++whileNumber);
     }
 
     public static String getTemp(String prefix) {
@@ -46,6 +55,8 @@ public class OptUtils {
     }
 
     public static String toOllirType(Type type) {
+        if(type.isArray())
+            return ".array" + toOllirType(type.getName());
         return toOllirType(type.getName());
     }
 

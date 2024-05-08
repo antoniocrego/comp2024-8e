@@ -19,6 +19,7 @@ import static pt.up.fe.comp2024.ast.Kind.*;
 public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private static final String SPACE = " ";
+    private static final String TAB_SPACE = SPACE.repeat(4);
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
     private final String NL = "\n";
@@ -40,14 +41,19 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     protected void buildVisitor() {
 
         addVisit(PROGRAM, this::visitProgram);
+
         addVisit(IMPORT_DECL, this::visitImportDecl);
         addVisit(CLASS_DECL, this::visitClass);
         addVisit(VAR_DECL, this::visitClassField);
         addVisit(METHOD_DECL, this::visitMethodDecl);
         addVisit(PARAM, this::visitParam);
+
         addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
-        addVisit(DEFAULT_STMT, this::visitDefaultStmt);
+        addVisit(IF_STMT, this::visitIfStmt);
+        addVisit(STMT_BODY, this::visitStmtBody);
+        addVisit(WHILE_STMT, this::visitWhileStmt);
+        addVisit(DEFAULT_STMT, this::visitDefaultStmt); // Functions Calls
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -265,6 +271,70 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         return code.toString();
     }
 
+    private String visitIfStmt(JmmNode node, Void unused) {
+
+        StringBuilder code = new StringBuilder();
+
+        var n = OptUtils.getIfNumber();
+        var condition = exprVisitor.visit(node.getJmmChild(0));
+        var thenStmt = node.getJmmChild(1);
+        var elseStmt = node.getJmmChild(2);
+
+        code.append(condition.getComputation());
+        code.append("if (");
+        code.append(condition.getCode());
+        code.append(") goto if").append(n).append(";\n");
+
+        code.append(scopedCode(visit(elseStmt)));
+
+        code.append("goto endif").append(n).append(";\n");
+
+        code.append("if").append(n).append(":\n");
+
+        code.append(scopedCode(visit(thenStmt)));
+        code.append("endif").append(n).append(":\n");
+
+        return code.toString();
+    }
+
+    private String scopedCode(String code){
+        var toRet = TAB_SPACE + code.replaceAll("\n", "\n" + TAB_SPACE);
+        return toRet.substring(0, toRet.length()-TAB_SPACE.length());
+    }
+
+    private String visitStmtBody(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+
+        for (var child : node.getChildren()) {
+            code.append(visit(child));
+        }
+
+        return code.toString();
+    }
+
+    private String visitWhileStmt(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+
+        var n = OptUtils.getWhileNumber();
+        var condition = exprVisitor.visit(node.getJmmChild(0));
+        var stmt = node.getJmmChild(1);
+
+        code.append("whileCond").append(n).append(":\n");
+        code.append(scopedCode(condition.getComputation()));
+
+        code.append("if (");
+        code.append(condition.getCode());
+        code.append(") goto whileLoop").append(n).append(";\n");
+        code.append("goto whileEnd").append(n).append(";\n");
+
+        code.append("whileLoop").append(n).append(":\n");
+        code.append(scopedCode(visit(stmt)));
+        code.append("goto whileCond").append(n).append(";\n");
+        code.append("whileEnd").append(n).append(":\n");
+
+        return code.toString();
+    }
+
     private String buildConstructor() {
         return ".construct " + table.getClassName() + "().V {\n" +
                 "invokespecial(this, \"<init>\").V;\n" +
@@ -276,6 +346,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
     private String visitProgram(JmmNode node, Void unused) {
+
+        //Print AST tree starting on node
+        System.out.println(node.toTree());
 
         StringBuilder code = new StringBuilder();
 

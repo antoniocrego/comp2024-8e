@@ -30,6 +30,7 @@ public enum Kind {
     ARRAY_ACCESS,
     IF_STMT,
     WHILE_STMT,
+    STMT_BODY,
     UNARY_OP,
     COMPARISON_EXPR,
     BOOLEAN_EXPR,

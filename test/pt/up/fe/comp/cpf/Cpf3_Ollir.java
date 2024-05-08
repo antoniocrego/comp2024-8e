@@ -28,8 +28,6 @@ public class Cpf3_Ollir {
         return TestUtils.optimize(SpecsIo.getResource("pt/up/fe/comp/cpf/3_ollir/" + filename));
     }
 
-
-    /*checks if method declaration is correct (array)*/
     @Test
     public void section1_Basic_Method_Declaration_Array() {
         var result = getOllirResult("basic/BasicMethodsArray.jmm");
@@ -40,6 +38,7 @@ public class Cpf3_Ollir {
     }
 
 
+    /* NOTE: && (short-circuit) should be implemented with ifs: Intermediate Code Generation, slides 20-21*/
     @Test
     public void section2_Arithmetic_Simple_and() {
         var ollirResult = getOllirResult("arithmetic/Arithmetic_and.jmm");

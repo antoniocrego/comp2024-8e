@@ -36,6 +36,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(UNARY_OP, this::visitUnary);
         addVisit(FUNC_CALL, this::visitFuncCall);
         addVisit(NEW_CLASS, this::visitNewClass);
+        addVisit(NEW_ARRAY, this::visitNewArray);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -70,6 +71,21 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         String code = tempToUse + ollirIntType;
 
         return new OllirExprResult(code, computation);
+    }
+
+    private OllirExprResult visitNewArray(JmmNode node, Void unused){
+
+            StringBuilder code = new StringBuilder();
+
+            String arrayType = OptUtils.toOllirType(new Type(node.getJmmChild(0).get("id"), true));
+            String size = visit(node.getJmmChild(1)).getCode();
+
+            code.append("new(array, ");
+            code.append(size);
+            code.append(")");
+            code.append(arrayType);
+
+            return new OllirExprResult(code.toString(), "");
     }
 
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
@@ -222,7 +238,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             }
         }
 
-
         String code = id + ollirType;
         return new OllirExprResult(code);
     }
@@ -243,10 +258,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             objectName = getObjectName(headNode);
         }
 
-
-
         var methodCalledName = node.get("id");
-
         String invoke = "invokevirtual";
 
         var methodNode = node.getAncestor(METHOD_DECL);
