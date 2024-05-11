@@ -497,21 +497,32 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         StringBuilder params = new StringBuilder();
 
-        // Parsing parameters
+        // PARSING PARAMETERS
 
         // VarArgs
-        //var argNodes = node.getChild(1).getChildren();
-        //var methodParameters = table.getParameters(methodCalledName);
-        //List<JmmNode> varArgsNodes = new ArrayList<>();
-        //boolean varArgs = hasVarArgs(methodParameters, argNodes);
-        //if(varArgs){
-        //    for(int i = argNodes.size()-1; i > methodParameters.size()-2; i--){
-        //        varArgsNodes.add(argNodes.get(i));
-        //    }
-        //}
+        List<JmmNode> argNodes = new ArrayList<>();
+        if(!node.getChildren(FUNC_ARGS).isEmpty()){
+            argNodes = node.getChild(1).getChildren();
+        }
+
+        List<Symbol> methodParameters = new ArrayList<>();
+        if(!isStatic) {
+            methodParameters = table.getParameters(methodCalledName);
+        }
+        List<JmmNode> varArgsNodes = new ArrayList<>();
+        boolean varArgs = hasVarArgs(methodParameters, argNodes);
+        if(varArgs){
+            for(int i = argNodes.size()-1; i > methodParameters.size()-2; i--){
+                varArgsNodes.add(argNodes.get(i));
+            }
+        }
 
         if(node.getChildren().size() > 1){
-            for(JmmNode argNode : node.getChild(1).getChildren()){
+            var toVisit = node.getChild(1).getChildren();
+            if(!isStatic && varArgs){
+                toVisit = argNodes.subList(0, methodParameters.size()-1);
+            }
+            for(JmmNode argNode : toVisit){
                 var visitedArgNode = visit(argNode);
                 params.append(", ");
 
@@ -530,6 +541,45 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 }else {
                     code.append(visitedArgNode.getComputation());
                     params.append(visitedArgNode.getCode());
+                }
+            }
+            if(varArgs){
+                String arrayType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), true));
+                String arrayValuesType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), false));
+                int size = varArgsNodes.size();
+
+                String arrayTemp = OptUtils.getTemp();
+                String temp = arrayTemp + arrayType;
+
+                params.append(", ").append(temp);
+
+                code.append(temp);
+                code.append(SPACE);
+                code.append(ASSIGN);
+                code.append(arrayType);
+                code.append(SPACE);
+                code.append("new(array, ");
+                code.append(size);
+                code.append(arrayValuesType);
+                code.append(")");
+                code.append(arrayType);
+                code.append(END_STMT);
+
+                for(int i = 0; i < size; i++){
+                    OllirExprResult arg = visit(varArgsNodes.get(i));
+                    code.append(arg.getComputation());
+                    code.append(arrayTemp);
+                    code.append("[");
+                    code.append(i);
+                    code.append(".i32");
+                    code.append("]");
+                    code.append(arrayValuesType);
+                    code.append(SPACE);
+                    code.append(ASSIGN);
+                    code.append(arrayValuesType);
+                    code.append(SPACE);
+                    code.append(arg.getCode());
+                    code.append(END_STMT);
                 }
             }
         }
@@ -581,9 +631,10 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private boolean hasVarArgs(List<Symbol> methodParameters, List<JmmNode> argNodes){
+        if(methodParameters.isEmpty()) return false;
         if(!methodParameters.get(methodParameters.size()-1).getType().isArray()) return false;
         if(argNodes.size() > methodParameters.size()) return true;
-        if(argNodes.size() == methodParameters.size()-1 && !argNodes.get(argNodes.size()-1).getKind().equals(ARRAY_INIT.getNodeName())) return true;
+        if(argNodes.size() == methodParameters.size() && !argNodes.get(argNodes.size()-1).getKind().equals(ARRAY_INIT.getNodeName())) return true;
         if(argNodes.size() == methodParameters.size()-1) return true;
         return false;
     }
