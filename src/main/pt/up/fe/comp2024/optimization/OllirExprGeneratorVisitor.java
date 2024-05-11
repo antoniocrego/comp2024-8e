@@ -20,6 +20,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     private static final String SPACE = " ";
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
+    private final String NEW_LINE = "\n";
 
     private final SymbolTable table;
 
@@ -35,7 +36,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(INTEGER_LITERAL, this::visitInteger);
         addVisit(BOOLEAN, this::visitBoolean);
         addVisit(COMPARISON_EXPR, this::visitBinExpr);
-        addVisit(BOOLEAN_EXPR, this::visitBinExpr);
+        addVisit(BOOLEAN_EXPR, this::visitBoolExpr);
         addVisit(UNARY_OP, this::visitUnary);
         addVisit(FUNC_CALL, this::visitFuncCall);
         addVisit(NEW_CLASS, this::visitNewClass);
@@ -307,6 +308,38 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 .append(rhsCode).append(END_STMT);
 
         return new OllirExprResult(code, computation);
+    }
+
+    private OllirExprResult visitBoolExpr(JmmNode node, Void unused) {
+
+        var lhs = visit(node.getJmmChild(0));
+        var rhs = visit(node.getJmmChild(1));
+
+        StringBuilder computation = new StringBuilder();
+
+        Type resType = TypeUtils.getExprType(node, table);
+        String resOllirType = OptUtils.toOllirType(resType);
+        String temp = OptUtils.getTemp() + resOllirType;
+
+        String n = OptUtils.getIfNumber();
+        String shortCircuitLabel = "true_" + n;
+        String endLabel = "end_" + n;
+
+        computation.append(lhs.getComputation());
+        computation.append("if(").append(lhs.getCode()).append(") goto ").append(shortCircuitLabel).append(END_STMT);
+        computation.append(temp).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE).append("0.bool").append(END_STMT);
+        computation.append("goto ").append(endLabel).append(END_STMT);
+
+        computation.append(shortCircuitLabel).append(":").append(NEW_LINE);
+
+        computation.append(rhs.getComputation());
+        computation.append(temp).append(SPACE)
+                .append(ASSIGN).append(resOllirType).append(SPACE)
+                .append(rhs.getCode()).append(END_STMT);
+
+        computation.append(endLabel).append(":").append(NEW_LINE);
+
+        return new OllirExprResult(temp, computation);
     }
 
 
