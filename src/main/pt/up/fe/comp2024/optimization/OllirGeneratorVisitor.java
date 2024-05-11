@@ -8,7 +8,6 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import static pt.up.fe.comp2024.ast.Kind.*;

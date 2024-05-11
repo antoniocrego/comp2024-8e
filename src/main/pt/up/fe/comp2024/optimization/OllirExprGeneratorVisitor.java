@@ -7,6 +7,9 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -37,6 +40,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(FUNC_CALL, this::visitFuncCall);
         addVisit(NEW_CLASS, this::visitNewClass);
         addVisit(NEW_ARRAY, this::visitNewArray);
+        addVisit(ARRAY_INIT, this::visitInitArray);
         addVisit(LENGTH_EXPR, this::visitArrayLengthExpr);
         addVisit(ARRAY_ACCESS, this::visitArrayAccessExpr);
 
@@ -90,6 +94,56 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             return new OllirExprResult(code.toString(), "");
     }
 
+    private OllirExprResult visitInitArray(JmmNode node, Void unused){
+        StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
+
+        JmmNode funcArgsNode = node.getJmmChild(0);
+
+        String arrayType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), true));
+        String arrayValuesType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), false));
+        if(!funcArgsNode.getChildren().isEmpty()){
+            arrayValuesType = OptUtils.toOllirType(funcArgsNode.getJmmChild(0));
+        }
+        int size = funcArgsNode.getChildren().size();
+
+        // create temp
+        String arrayTemp = OptUtils.getTemp();
+        code.append(arrayTemp);
+        code.append(arrayType);
+
+        computation.append(code);
+        computation.append(SPACE);
+        computation.append(ASSIGN);
+        computation.append(arrayType);
+        computation.append(SPACE);
+        computation.append("new(array, ");
+        computation.append(size);
+        computation.append(arrayValuesType);
+        computation.append(")");
+        computation.append(arrayType);
+        computation.append(END_STMT);
+
+        for(int i = 0; i < size; i++){
+            OllirExprResult arg = visit(funcArgsNode.getJmmChild(i));
+            computation.append(arg.getComputation());
+            computation.append(arrayTemp);
+            computation.append("[");
+            computation.append(i);
+            computation.append(".i32");
+            computation.append("]");
+            computation.append(arrayValuesType);
+            computation.append(SPACE);
+            computation.append(ASSIGN);
+            computation.append(arrayValuesType);
+            computation.append(SPACE);
+            computation.append(arg.getCode());
+            computation.append(END_STMT);
+        }
+
+        return new OllirExprResult(code.toString(), computation);
+    }
+
     private OllirExprResult visitArrayLengthExpr(JmmNode node, Void unused){
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
@@ -112,6 +166,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         return new OllirExprResult(code.toString(), computation);
     }
 
+    //TODO (thePeras): Always create a temporary variable for array access
     private OllirExprResult visitArrayAccessExpr(JmmNode node, Void unused){
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
@@ -410,6 +465,18 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         StringBuilder params = new StringBuilder();
 
         // Parsing parameters
+
+        // VarArgs
+        //var argNodes = node.getChild(1).getChildren();
+        //var methodParameters = table.getParameters(methodCalledName);
+        //List<JmmNode> varArgsNodes = new ArrayList<>();
+        //boolean varArgs = hasVarArgs(methodParameters, argNodes);
+        //if(varArgs){
+        //    for(int i = argNodes.size()-1; i > methodParameters.size()-2; i--){
+        //        varArgsNodes.add(argNodes.get(i));
+        //    }
+        //}
+
         if(node.getChildren().size() > 1){
             for(JmmNode argNode : node.getChild(1).getChildren()){
                 var visitedArgNode = visit(argNode);
@@ -480,6 +547,13 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         return new OllirExprResult(code.toString(), computation);
     }
 
+    private boolean hasVarArgs(List<Symbol> methodParameters, List<JmmNode> argNodes){
+        if(!methodParameters.get(methodParameters.size()-1).getType().isArray()) return false;
+        if(argNodes.size() > methodParameters.size()) return true;
+        if(argNodes.size() == methodParameters.size()-1 && !argNodes.get(argNodes.size()-1).getKind().equals(ARRAY_INIT.getNodeName())) return true;
+        if(argNodes.size() == methodParameters.size()-1) return true;
+        return false;
+    }
     String getObjectName(JmmNode node){
         if(node.getKind().equals(PAREN_EXPR.getNodeName())){
             return getObjectName(node.getChild(0));

@@ -9,6 +9,7 @@ import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import java.util.List;
 import java.util.Optional;
 
+import static pt.up.fe.comp2024.ast.Kind.*;
 import static pt.up.fe.comp2024.ast.Kind.TYPE;
 
 public class OptUtils {
@@ -41,13 +42,12 @@ public class OptUtils {
 
     public static String toOllirType(JmmNode typeNode) {
 
-        //TYPE.checkOrThrow(typeNode);
-        //TODO (thePeras): Check the different types of the grammar
-
-        if(typeNode.getKind().equals("ArrayType")){
+        String typeKind = typeNode.getKind();
+        if(typeKind.equals(ARRAY_TYPE.getNodeName()) || typeKind.equals(VARARG_TYPE.getNodeName())) {
             return ".array" + toOllirType(typeNode.getChild(0));
         }
-        if(typeNode.getKind().equals("CustomType")) return "." + typeNode.get("id");
+        if(typeKind.equals(CUSTOM_TYPE.getNodeName())) return "." + typeNode.get("id");
+        if(typeKind.equals(INTEGER_LITERAL.getNodeName())) return ".i32";
 
         String typeName = typeNode.get("id");
 
@@ -62,6 +62,7 @@ public class OptUtils {
 
     private static String toOllirType(String typeName) {
 
+        //TODO (thePeras): Should exist casting here? ex: double -> int
         return "." + switch (typeName) {
             case "int" -> "i32";
             case "boolean" -> "bool";

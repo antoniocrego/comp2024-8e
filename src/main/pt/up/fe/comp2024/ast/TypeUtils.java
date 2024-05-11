@@ -23,12 +23,12 @@ public class TypeUtils {
             JmmNode primitive_type = type.getJmmChild(0);
             return new Type(primitive_type.get("id"), true);
         }
-        else if(type.getKind().equals("VarargType")){
-            //TODO:
-            return new Type("int...", true);
-        }else{
-            return new Type(type.get("id"), false);
+        if(type.getKind().equals("VarargType")){
+            JmmNode primitive_type = type.getJmmChild(0);
+            return new Type(primitive_type.get("id").replace("...", ""), true);
         }
+
+        return new Type(type.get("id"), false);
     }
 
     /**
