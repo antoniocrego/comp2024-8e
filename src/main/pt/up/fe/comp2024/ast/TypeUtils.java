@@ -24,8 +24,7 @@ public class TypeUtils {
             return new Type(primitive_type.get("id"), true);
         }
         if(type.getKind().equals("VarargType")){
-            JmmNode primitive_type = type.getJmmChild(0);
-            return new Type(primitive_type.get("id").replace("...", ""), true);
+            return new Type("int...",true);
         }
 
         return new Type(type.get("id"), false);
