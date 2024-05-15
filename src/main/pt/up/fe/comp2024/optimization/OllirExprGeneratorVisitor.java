@@ -168,7 +168,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         return new OllirExprResult(code.toString(), computation);
     }
 
-    //TODO (thePeras): Always create a temporary variable for array access
     private OllirExprResult visitArrayAccessExpr(JmmNode node, Void unused){
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
@@ -187,22 +186,23 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         code.append("]");
         code.append(arrayVarType);
 
-        if(node.getParent().getKind().equals(ARRAY_ACCESS.getNodeName())){
-            String temp = OptUtils.getTemp();
-            String tempType = OptUtils.toOllirType(new Type(type, false));
-            computation.append(temp);
-            computation.append(tempType);
-            computation.append(SPACE);
-            computation.append(ASSIGN);
-            computation.append(tempType);
-            computation.append(SPACE);
-            computation.append(code);
-            computation.append(END_STMT);
-
-            code = new StringBuilder(temp + tempType);
+        //Don't create temps for assignment statements
+        if(node.getAncestor(ASSIGN_STMT).isPresent()){
+            return new OllirExprResult(code.toString(), computation);
         }
 
-        return new OllirExprResult(code.toString(), computation);
+        String temp = OptUtils.getTemp();
+        String tempType = OptUtils.toOllirType(new Type(type, false));
+        computation.append(temp);
+        computation.append(tempType);
+        computation.append(SPACE);
+        computation.append(ASSIGN);
+        computation.append(tempType);
+        computation.append(SPACE);
+        computation.append(code);
+        computation.append(END_STMT);
+
+        return new OllirExprResult(temp + tempType, computation);
     }
 
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
