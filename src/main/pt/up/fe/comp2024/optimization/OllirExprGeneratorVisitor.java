@@ -499,6 +499,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         // PARSING PARAMETERS
 
+        /*
         // VarArgs
         List<JmmNode> argNodes = new ArrayList<>();
         if(!node.getChildren(FUNC_ARGS).isEmpty()){
@@ -516,33 +517,35 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 varArgsNodes.add(argNodes.get(i));
             }
         }
-
-        if(node.getChildren().size() > 1){
+*/
+        if(node.getChildren().size() > 1) {
             var toVisit = node.getChild(1).getChildren();
-            if(!isStatic && varArgs){
-                toVisit = argNodes.subList(0, methodParameters.size()-1);
-            }
-            for(JmmNode argNode : toVisit){
+            //if(!isStatic && varArgs){
+            //    toVisit = argNodes.subList(0, methodParameters.size()-1);
+            //}\
+            for (JmmNode argNode : node.getChild(1).getChildren()) {
                 var visitedArgNode = visit(argNode);
                 params.append(", ");
 
                 // When accessing arrays, create a temporary variable
-                if(argNode.getKind().equals(ARRAY_ACCESS.getNodeName())) {
-                    String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getExprType(argNode,table));
+                if (argNode.getKind().equals(ARRAY_ACCESS.getNodeName())) {
+                    String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getExprType(argNode, table));
                     computation.append(visitedArgNode.getComputation());
                     computation.append(temp);
                     computation.append(SPACE);
                     computation.append(ASSIGN);
-                    computation.append(OptUtils.toOllirType(TypeUtils.getExprType(argNode,table)));
+                    computation.append(OptUtils.toOllirType(TypeUtils.getExprType(argNode, table)));
                     computation.append(SPACE);
                     computation.append(visitedArgNode.getCode());
                     computation.append(END_STMT);
                     params.append(temp);
-                }else {
+                } else {
                     code.append(visitedArgNode.getComputation());
                     params.append(visitedArgNode.getCode());
                 }
             }
+        }
+            /*
             if(varArgs){
                 String arrayType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), true));
                 String arrayValuesType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), false));
@@ -583,6 +586,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 }
             }
         }
+
+        */
 
         var returnType = "";
 
