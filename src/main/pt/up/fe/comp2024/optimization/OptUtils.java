@@ -64,7 +64,7 @@ public class OptUtils {
 
         //TODO (thePeras): Should exist casting here? ex: double -> int
         return "." + switch (typeName) {
-            case "int" -> "i32";
+            case "int", "int..." -> "i32";
             case "boolean" -> "bool";
             case "void" -> "V";
             default -> typeName; // For class names
