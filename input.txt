@@ -1,14 +1,17 @@
-import B;
-class A {
-    int b;
+import io;
 
-    public int foo(int a, boolean b, int c){
-        return 0;
-    }
-
-    public int testing() {
-        int a;
-        a = this.foo(b,true, this.testing());
-        return 0;
-    }
+class BinaryExpr {
+	public static void main(String[] args) {
+		int c;
+		c = 10;
+		io.println(c);
+		c = c*2;
+		io.println(c);
+		c = c +10;
+		io.println(c);
+		c = c -20;
+		io.println(c);
+		c = c/2;
+		io.println(c);
+	}
 }
