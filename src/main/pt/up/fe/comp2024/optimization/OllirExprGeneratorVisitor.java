@@ -174,7 +174,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         JmmNode arrayVarNode = node.getJmmChild(0);
         String type = TypeUtils.getExprType(arrayVarNode, table).getName();
-        String arrayVarType = OptUtils.toOllirType(new Type(type, false)); //ganda penso
+        String arrayVarType = OptUtils.toOllirType(new Type(type, false));
         JmmNode indexNode = node.getJmmChild(1);
         OllirExprResult index = visit(indexNode);
 
@@ -374,7 +374,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 computation.append(ASSIGN);
                 computation.append(ollirType);
                 computation.append(SPACE);
-                computation.append("getfield(this, "); //field_1.i32).i32;
+                computation.append("getfield(this, ");
                 computation.append(id);
                 computation.append(ollirType);
                 computation.append(")");
