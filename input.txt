@@ -3,13 +3,13 @@ class A {
     int b;
 
     public int[] foo(int a, boolean b, int c){
-        return 0;
+        return new int[2];
     }
 
     public int testing() {
         int a;
         int[] b;
-        b = this.foo(2,true,5);
+        a = this.foo(2,true,5)[1];
         return 0;
     }
 }
