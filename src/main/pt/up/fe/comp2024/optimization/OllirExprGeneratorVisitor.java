@@ -6,6 +6,7 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
+import pt.up.fe.comp2024.symboltable.JmmSymbolTable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +23,10 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     private final String END_STMT = ";\n";
     private final String NEW_LINE = "\n";
 
-    private final SymbolTable table;
+    private final JmmSymbolTable table;
 
     public OllirExprGeneratorVisitor(SymbolTable table) {
-        this.table = table;
+        this.table = (JmmSymbolTable) table;
     }
 
     @Override
@@ -506,7 +507,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         }
 
         List<Symbol> methodParameters = new ArrayList<>();
-        if(!isStatic) {
+
+        if(table.methodHasParams(methodCalledName)) {
             methodParameters = table.getParameters(methodCalledName);
         }
         List<JmmNode> varArgsNodes = new ArrayList<>();

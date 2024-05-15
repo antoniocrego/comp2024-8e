@@ -81,4 +81,8 @@ public class JmmSymbolTable implements SymbolTable {
         return Collections.unmodifiableList(locals.get(methodSignature));
     }
 
+    public boolean methodHasParams(String method) {
+        return params.containsKey(method);
+    }
+
 }
