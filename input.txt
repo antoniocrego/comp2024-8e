@@ -2,14 +2,13 @@ import B;
 class A {
     int b;
 
-    public int[] foo(int a, boolean b, int c){
-        return new int[2];
+    public int foo(int a, boolean b, int c){
+        return 0;
     }
 
     public int testing() {
         int a;
-        int[] b;
-        a = this.foo(2,true,5)[1];
+        a = this.foo(b,true, this.testing());
         return 0;
     }
 }

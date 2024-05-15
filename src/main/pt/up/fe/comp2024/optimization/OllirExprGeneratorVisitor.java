@@ -632,11 +632,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
     private boolean hasVarArgs(List<Symbol> methodParameters, List<JmmNode> argNodes){
         if(methodParameters.isEmpty()) return false;
-        if(!methodParameters.get(methodParameters.size()-1).getType().isArray()) return false;
-        if(argNodes.size() > methodParameters.size()) return true;
-        if(argNodes.size() == methodParameters.size() && !argNodes.get(argNodes.size()-1).getKind().equals(ARRAY_INIT.getNodeName())) return true;
-        if(argNodes.size() == methodParameters.size()-1) return true;
-        return false;
+        if(!methodParameters.get(methodParameters.size()-1).getType().getName().equals("int...")) return false;
+        return argNodes.size() >= methodParameters.size();
     }
     String getObjectName(JmmNode node){
         if(node.getKind().equals(PAREN_EXPR.getNodeName())){
