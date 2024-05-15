@@ -525,8 +525,10 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             for(JmmNode argNode : toVisit){
                 var visitedArgNode = visit(argNode);
                 params.append(", ");
-
+                code.append(visitedArgNode.getComputation());
+                params.append(visitedArgNode.getCode());
                 // When accessing arrays, create a temporary variable
+                /*
                 if(argNode.getKind().equals(ARRAY_ACCESS.getNodeName())) {
                     String temp = OptUtils.getTemp() + OptUtils.toOllirType(TypeUtils.getExprType(argNode,table));
                     computation.append(visitedArgNode.getComputation());
@@ -542,6 +544,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                     code.append(visitedArgNode.getComputation());
                     params.append(visitedArgNode.getCode());
                 }
+                */
+
             }
             if(varArgs){
                 String arrayType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), true));
