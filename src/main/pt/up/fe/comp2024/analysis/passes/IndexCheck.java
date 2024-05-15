@@ -60,14 +60,14 @@ public class IndexCheck extends AnalysisVisitor {
             }
             if (!methodCallerType.isArray() && !methodCallerType.getName().equals(table.getClassName())) return null;
             var returnType = table.getReturnType(methodName);
-            if (!returnType.getName().equals("int") || returnType.isArray()){
-                var message = "Indexing array '%s' with return value of function '%s' of type '%s'";
+            if (!returnType.getName().equals("int") || !returnType.isArray()){
+                var message = "Indexing return type '%s' of function '%s'";
                 if (returnType.isArray()) message += " array";
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(arrayAccess),
                         NodeUtils.getColumn(arrayAccess),
-                        String.format(message, "[...]", returnType.getName(), methodName),
+                        String.format(message, returnType.getName(), methodName),
                         null)
                 );
                 return null;
@@ -157,7 +157,7 @@ public class IndexCheck extends AnalysisVisitor {
                         Stage.SEMANTIC,
                         NodeUtils.getLine(arrayAccess),
                         NodeUtils.getColumn(arrayAccess),
-                        String.format(message, arrayName, returnType.getName(), methodName),
+                        String.format(message, arrayName, methodName, returnType.getName()),
                         null)
                 );
                 return null;
