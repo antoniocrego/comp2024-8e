@@ -501,7 +501,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         // VarArgs
         List<JmmNode> argNodes = new ArrayList<>();
-        if(!node.getChildren(FUNC_ARGS).isEmpty()){
+        if(node.getChildren().size()>1){
             argNodes = node.getChild(1).getChildren();
         }
 
