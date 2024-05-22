@@ -12,16 +12,35 @@ public class JmmOptimizationImpl implements JmmOptimization {
     public OllirResult toOllir(JmmSemanticsResult semanticsResult) {
 
         var visitor = new OllirGeneratorVisitor(semanticsResult.getSymbolTable());
-        var ollirCode = visitor.visit(semanticsResult.getRootNode());
+        var optimizedAST = optimize(semanticsResult);
+        var ollirCode = visitor.visit(optimizedAST.getRootNode());
 
-        return new OllirResult(semanticsResult, ollirCode, Collections.emptyList());
+        return new OllirResult(optimizedAST, ollirCode, Collections.emptyList());
     }
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
+        int maxRegisters = Integer.parseInt(ollirResult.getConfig().getOrDefault("registerAllocation", "-1"));
 
-        //TODO: Do your OLLIR-based optimizations here
+
 
         return ollirResult;
+    }
+
+    @Override
+    public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
+        var ASTConstantFolder = new ASTConstantFolder();
+        var ASTConstantPropagation = new ASTConstantPropagation();
+        if (semanticsResult.getConfig().getOrDefault("optimize", "false").equals("false")) {
+            return semanticsResult;
+        }
+        boolean optimized;
+        do{
+            optimized = false;
+            optimized |= ASTConstantFolder.visit(semanticsResult.getRootNode(), null); // if any optimization is done, the loop will continue
+            optimized |= ASTConstantPropagation.visit(semanticsResult.getRootNode(), null);
+        }
+        while(optimized);
+        return semanticsResult;
     }
 }
