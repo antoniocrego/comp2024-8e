@@ -62,8 +62,11 @@ public class MathCheck extends AnalysisVisitor {
             varRefName = lhs.get("name");
         }
         else if (lhs.getKind().equals(Kind.FUNC_CALL.toString())){
-            var methodVariable = lhs.getChild(0).get("name");
+            String methodVariable;
             var methodName = lhs.get("id");
+            if (!lhs.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())) methodVariable = lhs.getChild(0).get("name");
+            else if (table.getMethods().contains(methodName)) methodVariable = "this"; // this is a gross assumption but it's the best we can do
+            else methodVariable = "IMPORTED";
             Type methodCallerType = new Type("", false);
             if (!table.getImports().contains(methodVariable)){
                 if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);
@@ -110,8 +113,11 @@ public class MathCheck extends AnalysisVisitor {
             varRefName2 = rhs.get("name");
         }
         else if (rhs.getKind().equals(Kind.FUNC_CALL.toString())){
-            var methodVariable = rhs.getChild(0).get("name");
+            String methodVariable;
             var methodName = rhs.get("id");
+            if (!rhs.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())) methodVariable = rhs.getChild(0).get("name");
+            else if (table.getMethods().contains(methodName)) methodVariable = "this"; // this is a gross assumption but it's the best we can do
+            else methodVariable = "IMPORTED";
             Type methodCallerType = new Type("", false);
             if (!table.getImports().contains(methodVariable)){
                 if (methodVariable.equals("this")) methodCallerType = new Type(table.getClassName(), false);

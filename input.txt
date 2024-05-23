@@ -1,23 +1,36 @@
-class PropWithLoop {
-    public int foo(){
-	  int a;
-	  int i;
-	  int res;
-	  a = 10;
-	  i = 0;
-	  while (i < a){
-	    i=i+1;
-	  }
-	  res = i*a;
-	  return res;
-	}
-	public static void main(String[] args) {
-	}
+import io;
+import Quicksort;
+import java.util.ArrayList;
+class CompileBasic extends Quicksort {
+
+    int intField;
+    boolean boolField;
+
+    public CompileBasic foo(int a) {
+        CompileBasic b;
+        b= new CompileBasic();
+        return b;
+    }
+    public int bar(int b, CompileBasic obj){
+        return 2;
+    }
+    public int methodOne() {
+        int intLocal1;
+        boolean boolLocal1;
+        intLocal1 = 3 + this.bar(10+new CompileBasic().foo(intLocal1).bar(1, new CompileBasic()), new CompileBasic());
+        return 1;
+    }
+
+    public boolean methodTwo(int intParam1, boolean boolParam1) {
+        return boolParam1;
+    }
+
+
+    public static void main(String[] args) {
+    }
 }
 
 /*
-import io;
-
 class BinaryExpr {
 	public static void main(String[] args) {
 		int c;

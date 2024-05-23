@@ -44,7 +44,7 @@ public class MethodCheck extends AnalysisVisitor {
         var methodVariable = "";
         var methodName = funcCall.get("id");
         Type methodCallerType = new Type("", false);
-        if (!funcCall.getChild(0).getKind().equals(Kind.FUNC_CALL.toString())){
+        if (funcCall.getChild(0).getKind().equals(Kind.VAR_REF_EXPR.toString())){
             methodVariable = funcCall.getChild(0).get("name");
         }
         else{
