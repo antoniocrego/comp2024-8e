@@ -1,3 +1,21 @@
+class PropWithLoop {
+    public int foo(){
+	  int a;
+	  int i;
+	  int res;
+	  a = 10;
+	  i = 0;
+	  while (i < a){
+	    i=i+1;
+	  }
+	  res = i*a;
+	  return res;
+	}
+	public static void main(String[] args) {
+	}
+}
+
+/*
 import io;
 
 class BinaryExpr {
@@ -15,3 +33,4 @@ class BinaryExpr {
 		io.println(c);
 	}
 }
+*/

@@ -18,6 +18,8 @@ public class JmmOptimizationImpl implements JmmOptimization {
         var visitor = new OllirGeneratorVisitor(semanticsResult.getSymbolTable());
         var optimizedAST = optimize(semanticsResult);
         var ollirCode = visitor.visit(optimizedAST.getRootNode());
+        System.out.println("OPTIMIZED TREE:");
+        System.out.println(optimizedAST.getRootNode().toTree());
 
         return optimize(new OllirResult(optimizedAST, ollirCode, Collections.emptyList()));
     }
