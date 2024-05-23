@@ -102,8 +102,8 @@ public class ASTConstantPropagation extends AJmmVisitor<Void, Boolean> {
     public Boolean visitIfStmt(JmmNode node, Void unused){
         boolean condition = visit(node.getChild(0), unused); // propagate to condition
 
-        Set<String> modifiedVariables = visitAssignsAndDecls(node.getChild(1), unused); // get all variables modified inside the if
-        Set<String> modifiedVariablesElse = visitAssignsAndDecls(node.getChild(2), unused); // get all variables modified inside the else
+        Set<String> modifiedVariables = visitAssignsAndDecls(node.getChild(1)); // get all variables modified inside the if
+        Set<String> modifiedVariablesElse = visitAssignsAndDecls(node.getChild(2)); // get all variables modified inside the else
 
         Map<String, VarInfo> copy = new HashMap<>(variables);
 
@@ -119,7 +119,7 @@ public class ASTConstantPropagation extends AJmmVisitor<Void, Boolean> {
     public Boolean visitWhileStmt(JmmNode node, Void unused){
         boolean condition = visit(node.getChild(0), unused); // propagate to condition
 
-        Set<String> modifiedVariables = visitAssignsAndDecls(node.getChild(1), unused); // get all variables modified inside the while
+        Set<String> modifiedVariables = visitAssignsAndDecls(node.getChild(1)); // get all variables modified inside the while
 
         Map<String, VarInfo> copy = new HashMap<>(variables);
 
