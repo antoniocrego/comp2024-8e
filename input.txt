@@ -1,12 +1,12 @@
 import io;
 
 class Maluco {
-    int foo(boolean c, int... a) {
+    int foo(int... a) {
         return 0;
     }
 
     int funk(int a, int b) {
-        this.foo(true);
+        this.foo(a, b);
         return 1;
     }
 
