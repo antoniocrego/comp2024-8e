@@ -12,7 +12,7 @@
 
 ## Self-Assessment
 
-- We think our project deserves a 16 out of 20.
+- We think our project deserves a 18 out of 20.
 
 ## Extra Elements
 
