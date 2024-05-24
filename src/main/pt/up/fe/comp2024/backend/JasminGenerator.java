@@ -179,13 +179,14 @@ public class JasminGenerator {
 //        method.getVarTable().size() + 1
         code.append(TAB).append(".limit stack ").append(stack_limit).append(NL);
 
-        int maxLocals = method.getVarTable().isEmpty() ? -1 : 0;  // guarantees if there are no variables it'll say locals=0 instead of 1
+        int maxLocals = 0;
         for(var var : method.getVarTable().values()){
             int currReg = var.getVirtualReg();
             if (currReg > maxLocals) {
                 maxLocals = currReg;
             }
         }
+        if (method.getVarTable().isEmpty() && method.isStaticMethod()) maxLocals = -1;
 
         code.append(TAB).append(".limit locals ").append(maxLocals+1).append(NL);
         code.append(methodBody);
