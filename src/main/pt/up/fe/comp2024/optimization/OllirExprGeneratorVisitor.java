@@ -551,45 +551,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                 */
 
             }
-            if(varArgs){
-                String arrayType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), true));
-                String arrayValuesType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), false));
-                int size = varArgsNodes.size();
-
-                String arrayTemp = OptUtils.getTemp();
-                String temp = arrayTemp + arrayType;
-
-                params.append(", ").append(temp);
-
-                code.append(temp);
-                code.append(SPACE);
-                code.append(ASSIGN);
-                code.append(arrayType);
-                code.append(SPACE);
-                code.append("new(array, ");
-                code.append(size);
-                code.append(arrayValuesType);
-                code.append(")");
-                code.append(arrayType);
-                code.append(END_STMT);
-
-                for(int i = 0; i < size; i++){
-                    OllirExprResult arg = visit(varArgsNodes.get(i));
-                    code.append(arg.getComputation());
-                    code.append(arrayTemp);
-                    code.append("[");
-                    code.append(i);
-                    code.append(".i32");
-                    code.append("]");
-                    code.append(arrayValuesType);
-                    code.append(SPACE);
-                    code.append(ASSIGN);
-                    code.append(arrayValuesType);
-                    code.append(SPACE);
-                    code.append(arg.getCode());
-                    code.append(END_STMT);
-                }
-            }
         }
 
         var returnType = "";

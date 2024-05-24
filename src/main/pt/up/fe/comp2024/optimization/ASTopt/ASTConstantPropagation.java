@@ -13,7 +13,7 @@ import java.util.Set;
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 public class ASTConstantPropagation extends AJmmVisitor<Void, Boolean> {
-    private final Map<String, VarInfo> variables = new HashMap<>();
+    private Map<String, VarInfo> variables = new HashMap<>();
 
     public ASTConstantPropagation() {
 
@@ -101,31 +101,27 @@ public class ASTConstantPropagation extends AJmmVisitor<Void, Boolean> {
     public Boolean visitIfStmt(JmmNode node, Void unused){
         boolean condition = visit(node.getChild(0), unused); // propagate to condition
 
-        Set<String> modifiedVariables = visitAssignsAndDecls(node.getChild(1)); // get all variables modified inside the if
-        Set<String> modifiedVariablesElse = visitAssignsAndDecls(node.getChild(2)); // get all variables modified inside the else
+        Set<String> modifiedVariables = visitAssigns(node.getChild(1)); // get all variables modified inside the if
+        Set<String> modifiedVariablesElse = visitAssigns(node.getChild(2)); // get all variables modified inside the else
 
-        Map<String, VarInfo> copy = new HashMap<>(variables);
+        Map<String, VarInfo> beforeIf = new HashMap<>(variables);
 
-        copy.forEach((key, value) -> {
-            if (modifiedVariables.contains(key)) { // remove all variables that will be changed by thenstmt
-                variables.remove(key); // this variable is no longer acceptable for optimization
-            }
-        });
+        boolean ret = condition | visit(node.getChild(1), unused); // visit the thenstmt
 
-        boolean ret = condition | visit(node.getChild(1), unused); // visit the ifstmt with the modified variables removed
+        variables = beforeIf; // if we enter else stmt, the context will be that of before the ifstmt
 
-        copy = new HashMap<>(variables);
-
-        copy.forEach((key, value) -> {
-            if (modifiedVariables.contains(key) || modifiedVariablesElse.contains(key)) { // remove all variables changed by thenstmt, and all that will be changed by else
-                variables.remove(key); // this variable is no longer acceptable for optimization
+        modifiedVariables.forEach(value->{
+            if (variables.containsKey(value)){
+                variables.get(value).incrementTimesUsed(); // this guarantees that the variable is recognized as used for else and beyond, so it doesnt delete the original variable definition for non-use
             }
         });
 
         boolean elseRet = visit(node.getChild(2), unused); // visit the elsestmt with the modified variables removed
 
-        copy.forEach((key, value) -> {
-            if (modifiedVariablesElse.contains(key)) { // remove all variables changed by elsestmt
+        Map<String, VarInfo> copy = new HashMap<>(variables);
+
+        copy.forEach((key, value) -> { // this generates the context for allowing either the if and else to have happened
+            if (modifiedVariables.contains(key) || modifiedVariablesElse.contains(key)) { // remove all variables changed by elsestmt and the thenstmt, so that they dont propagate something that could have been changed
                 variables.remove(key); // this variable is no longer acceptable for optimization
             }
         });
@@ -136,7 +132,7 @@ public class ASTConstantPropagation extends AJmmVisitor<Void, Boolean> {
     public Boolean visitWhileStmt(JmmNode node, Void unused){
         boolean condition = visit(node.getChild(0), unused); // propagate to condition
 
-        Set<String> modifiedVariables = visitAssignsAndDecls(node.getChild(1)); // get all variables modified inside the while
+        Set<String> modifiedVariables = visitAssigns(node.getChild(1)); // get all variables modified inside the while
 
         Map<String, VarInfo> copy = new HashMap<>(variables);
 
@@ -159,7 +155,7 @@ public class ASTConstantPropagation extends AJmmVisitor<Void, Boolean> {
          return condition | ret;
     }
 
-    public Set<String> visitAssignsAndDecls(JmmNode node){
+    public Set<String> visitAssigns(JmmNode node){
         Set<String> modifiedVariables = new HashSet<>();
 
         for (var child : node.getChildren()){
@@ -168,10 +164,12 @@ public class ASTConstantPropagation extends AJmmVisitor<Void, Boolean> {
                 String varName = lhs.get("name");
                 modifiedVariables.add(varName);
             }
-            else if (child.getKind().equals(VAR_DECL.toString())){ // this assumes that semantic impedes this variable from being accessed out of scope
-                JmmNode lhs = child.getChild(1);
-                String varName = lhs.get("name");
-                modifiedVariables.add(varName);
+            else if (child.getKind().equals(IF_STMT.toString())){
+                modifiedVariables.addAll(visitAssigns(child.getChild(1)));
+                modifiedVariables.addAll(visitAssigns(child.getChild(2)));
+            }
+            else if (child.getKind().equals(WHILE_STMT.toString())){
+                modifiedVariables.addAll(visitAssigns(child.getChild(1)));
             }
         }
 
