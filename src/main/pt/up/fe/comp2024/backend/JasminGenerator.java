@@ -8,6 +8,7 @@ import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
+import javax.swing.text.AbstractDocument;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,10 +47,16 @@ public class JasminGenerator {
         generators.put(SingleOpInstruction.class, this::generateSingleOp);
         generators.put(LiteralElement.class, this::generateLoadInstruction);
         generators.put(Operand.class, this::generateLoadInstruction);
+
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(CallInstruction.class, this::generateCall);
         generators.put(FieldInstruction.class, this::generateFieldInstruction);
+
+        generators.put(CondBranchInstruction.class, this::generateBranchInstruction);
+        generators.put(GotoInstruction.class, this::generateGotoInstruction);
+        generators.put(UnaryOpInstruction.class, this::generateUnaryOp);
+
     }
 
     public List<Report> getReports() {
@@ -143,6 +150,12 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
+            var labels = method.getLabels(inst);
+
+            for (var label : labels) {
+                code.append(label).append(":").append(NL);
+            }
+
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
@@ -166,6 +179,71 @@ public class JasminGenerator {
         return code.toString();
     }
 
+// TODO:          ----         ----         ----         ----         ----         ----         ----         ----
+//       ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2
+//  -----          ----         ----         ----         ----         ----         ----         ----         ----
+
+    private String generateBranchInstruction(CondBranchInstruction instruction) {
+        StringBuilder code = new StringBuilder();
+
+        Instruction condition = instruction.getCondition();
+        switch (condition.getInstType()) {
+            case UNARYOPER -> {
+                code.append(" ");
+            }
+            case BINARYOPER -> {
+                BinaryOpInstruction bop = (BinaryOpInstruction) condition;
+                code
+                        .append(generateLoadInstruction(bop.getLeftOperand()))
+                        .append(generateLoadInstruction(bop.getRightOperand()))
+                        .append("isub").append(NL)
+                        .append(switch (bop.getOperation().getOpType()) {
+                            case LTH -> "iflt ";
+                            case GTH -> "ifgt ";
+                            case EQ -> "ifeq ";
+                            case NEQ -> "ifne ";
+                            case LTE -> "ifle ";
+                            case GTE -> "ifge ";
+                            default -> throw new NotImplementedException(instruction.getInstType());
+                        });
+            }
+            case NOPER -> {
+                SingleOpInstruction op = (SingleOpInstruction) condition;
+                code
+                        .append(generateLoadInstruction(op.getSingleOperand()))
+                        .append("ifne "); // Append here!
+            }
+            default -> throw new NotImplementedException(instruction.getInstType());
+        }
+
+        code.append(instruction.getLabel());
+
+        return code.toString();
+    }
+
+    private String generateGotoInstruction(GotoInstruction instruction) {
+        return "goto " + instruction.getLabel();
+    }
+
+    private String generateUnaryOp(UnaryOpInstruction instruction) {
+        var code = new StringBuilder();
+        switch (instruction.getOperation().getOpType()) {
+            case NOTB -> {
+                code
+                        .append("iconst_1").append(NL)
+                        .append(generateLoadInstruction(instruction.getOperand()))
+                        .append("ixor").append(NL);
+            }
+            default -> throw new NotImplementedException(instruction.getOperation().getOpType());
+        };
+
+        return code.toString();
+    }
+
+// TODO:          ----         ----         ----         ----         ----         ----         ----         ----
+//       ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2    ENTREGA 2
+//  -----          ----         ----         ----         ----         ----         ----         ----         ----
+
     private String generateAssign(AssignInstruction assign) {
         var code = new StringBuilder();
 
@@ -187,14 +265,6 @@ public class JasminGenerator {
     private String generateSingleOp(SingleOpInstruction singleOp) {
         return generators.apply(singleOp.getSingleOperand());
     }
-
-//    private String generateLiteral(LiteralElement literal) {
-//        return generateLoadInstruction(literal);
-//    }
-
-//    private String generateOperand(Operand operand) {
-//        return generateLoadInstruction(operand);
-//    }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
         var code = new StringBuilder();
