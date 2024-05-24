@@ -8,7 +8,7 @@ class Maluco {
     int funk(int a, int b) {
         int x;
         x=0;
-        this.foo([1,2,3]);
+        this.foo(new int[2]);
         return x;
     }
 
