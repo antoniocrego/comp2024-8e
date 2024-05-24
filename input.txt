@@ -1,20 +1,21 @@
 import io;
 
 class Maluco {
-    int foo(int[] a) {
+    int foo(boolean c, int... a) {
         return 0;
     }
 
     int funk(int a, int b) {
         int x;
         x=0;
-        this.foo(new int[2]);
+        this.foo(true);
         return x;
     }
 
     public static void main(String[] args) {
     }
 }
+
 
 /*
 import io;
