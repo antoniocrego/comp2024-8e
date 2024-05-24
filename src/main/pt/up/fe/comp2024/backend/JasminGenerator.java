@@ -271,11 +271,20 @@ public class JasminGenerator {
     private String generateAssign(AssignInstruction assign) {
         var code = new StringBuilder();
 
+        // store value in the stack in destination
+        Element lhs = assign.getDest();
+
+        if (assign.getDest() instanceof ArrayOperand) {
+            code
+                    .append("aload").append(getRegIndex(((Operand) lhs).getName())).append(NL)
+                    .append(generateLoadInstruction(((ArrayOperand) lhs).getIndexOperands().get(0)))
+                    .append(generators.apply(assign.getRhs()))
+                    .append(generateStoreInstruction((Operand) lhs));
+            return code.toString();
+        }
+
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
-
-        // store value in the stack in destination
-        var lhs = assign.getDest();
 
         if (!(lhs instanceof Operand)) {
             throw new NotImplementedException(lhs.getClass());
@@ -299,6 +308,12 @@ public class JasminGenerator {
                     case MUL -> "imul";
                     case SUB -> "isub";
                     case DIV -> "idiv";
+                    case LTH -> "isub" + NL + "iflt ";
+                    case GTH -> "isub" + NL + "ifgt ";
+                    case EQ -> "isub" + NL + "ifeq ";
+                    case NEQ -> "isub" + NL + "ifne ";
+                    case LTE -> "isub" + NL + "ifle ";
+                    case GTE -> "isub" + NL + "ifge ";
                     default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
                 } +
                 NL;
@@ -381,8 +396,9 @@ public class JasminGenerator {
             }
             case NEW -> {
                 var caller = (Operand) callInst.getCaller();
+                var firstArg = (Operand) callInst.getOperands().get(0);
 
-                if (caller.getName().equals("array")) {
+                if (firstArg.getName().equals("array")) {
                     code
                             .append(generateLoadInstruction(callInst.getOperands().get(1)))
                             .append("newarray int").append(NL);
@@ -465,14 +481,26 @@ public class JasminGenerator {
     }
 
     private String generateStoreInstruction(Operand operand) {
+        StringBuilder code = new StringBuilder();
         String name = operand.getName();
         String reg = getRegIndex(name);
-        updateStack(-1);
-        return switch (operand.getType().getTypeOfElement()) {
-            case INT32, BOOLEAN -> "istore" + reg;
-            case OBJECTREF, STRING, ARRAYREF, CLASS -> "astore" + reg;
+        switch (operand.getType().getTypeOfElement()) {
+            case INT32, BOOLEAN -> {
+                if (currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement() == ElementType.ARRAYREF) {
+                    updateStack(31);
+                    code.append("iastore");
+                } else {
+                    updateStack(-1);
+                    code.append("istore").append(reg);
+                }
+            }
+            case OBJECTREF, STRING, ARRAYREF, CLASS -> {
+                updateStack(-1);
+                code.append("astore").append(reg);
+            }
             default -> throw new NotImplementedException(operand);
         };
+        return code.toString();
     }
 
     private String generateLoadInstruction(Element element) {
@@ -482,10 +510,10 @@ public class JasminGenerator {
                 case INT32, BOOLEAN -> {
                     int val = Integer.parseInt(literal.getLiteral());
                     if (val == -1) code.append("iconst_m1");
-                    else if (val >= 0 && val <= 5) code.append("iconst_" + val);
-                    else if (val >= -128 && val <= 127) code.append("bipush " + val);
-                    else if (val >= -32768 && val <= 32767) code.append("sipush " + val);
-                    else code.append("ldc " + val);
+                    else if (val >= 0 && val <= 5) code.append("iconst_").append(val);
+                    else if (val >= -128 && val <= 127) code.append("bipush ").append(val);
+                    else if (val >= -32768 && val <= 32767) code.append("sipush ").append(val);
+                    else code.append("ldc ").append(val);
                 }
                 default -> throw new NotImplementedException(element);
             }
