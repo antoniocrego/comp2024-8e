@@ -50,7 +50,6 @@ public class REGRegisterAllocator {
                     if (desc != null) {
                         desc.setVirtualReg(graph.getNode(var).getColor());
                     }
-                    System.out.println();
                 }
             }
         }

@@ -179,8 +179,10 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         OllirExprResult index = visit(indexNode);
 
         computation.append(index.getComputation());
+        OllirExprResult arrayVarVisit = visit(arrayVarNode);
 
-        code.append(arrayVarNode.get("name"));
+        computation.append(arrayVarVisit.getComputation());
+        code.append(arrayVarVisit.getCode());
         code.append("[");
         code.append(index.getCode());
         code.append("]");

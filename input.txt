@@ -1,32 +1,22 @@
-import Quicksort;
-import java.util.ArrayList;
-class CompileBasic extends Quicksort {
+import io;
 
-    int intField;
-    boolean boolField;
-
-    public CompileBasic foo(int a) {
-        CompileBasic b;
-        b= new CompileBasic();
-        return b;
-    }
-    public int bar(int b, CompileBasic obj){
-        return 2;
-    }
-    public int methodOne() {
-        int intLocal1;
-        boolean boolLocal1;
-        int what;
-        intLocal1 = 3 + this.bar(10+new CompileBasic().foo(intLocal1).bar(1, new CompileBasic()), new CompileBasic());
-        boolLocal1 = this.methodTwo(2, true);
-        what = 2;
-        return 1;
+class Maluco {
+    int foo(int[] a) {
+        return 0;
     }
 
-    public boolean methodTwo(int intParam1, boolean boolParam1) {
-        return boolParam1;
+    int funk(int a, int b) {
+        int x;
+        int c;
+        x=0;
+        io.foo([1,2,3]);
+        while (1<2){
+            c = x;
+            x = 1;
+            c = x;
+        }
+        return x;
     }
-
 
     public static void main(String[] args) {
     }

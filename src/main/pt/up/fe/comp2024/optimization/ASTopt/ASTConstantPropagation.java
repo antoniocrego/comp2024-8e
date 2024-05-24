@@ -107,12 +107,30 @@ public class ASTConstantPropagation extends AJmmVisitor<Void, Boolean> {
         Map<String, VarInfo> copy = new HashMap<>(variables);
 
         copy.forEach((key, value) -> {
-            if (modifiedVariables.contains(key) || modifiedVariablesElse.contains(key)) {
+            if (modifiedVariables.contains(key)) { // remove all variables that will be changed by thenstmt
                 variables.remove(key); // this variable is no longer acceptable for optimization
             }
         });
 
-        return condition | visit(node.getChild(1), unused) | visit(node.getChild(2), unused);
+        boolean ret = condition | visit(node.getChild(1), unused); // visit the ifstmt with the modified variables removed
+
+        copy = new HashMap<>(variables);
+
+        copy.forEach((key, value) -> {
+            if (modifiedVariables.contains(key) || modifiedVariablesElse.contains(key)) { // remove all variables changed by thenstmt, and all that will be changed by else
+                variables.remove(key); // this variable is no longer acceptable for optimization
+            }
+        });
+
+        boolean elseRet = visit(node.getChild(2), unused); // visit the elsestmt with the modified variables removed
+
+        copy.forEach((key, value) -> {
+            if (modifiedVariablesElse.contains(key)) { // remove all variables changed by elsestmt
+                variables.remove(key); // this variable is no longer acceptable for optimization
+            }
+        });
+
+        return condition | ret | elseRet;
     }
 
     public Boolean visitWhileStmt(JmmNode node, Void unused){
@@ -123,12 +141,22 @@ public class ASTConstantPropagation extends AJmmVisitor<Void, Boolean> {
         Map<String, VarInfo> copy = new HashMap<>(variables);
 
         copy.forEach((key, value) -> {
-            if (modifiedVariables.contains(key)) {
+            if (modifiedVariables.contains(key)) { // remove variables that will be modified by the whilestmt
                 variables.remove(key); // this variable is no longer acceptable for optimization
             }
         });
 
-         return condition | visit(node.getChild(1), unused);
+        boolean ret = condition | visit(node.getChild(1), unused); // visit the whilestmt with the modified variables removed
+
+        copy = new HashMap<>(variables);
+
+        copy.forEach((key, value) -> {
+            if (modifiedVariables.contains(key)) { // remove variables modified by the whilestmt
+                variables.remove(key); // this variable is no longer acceptable for optimization
+            }
+        });
+
+         return condition | ret;
     }
 
     public Set<String> visitAssignsAndDecls(JmmNode node){
