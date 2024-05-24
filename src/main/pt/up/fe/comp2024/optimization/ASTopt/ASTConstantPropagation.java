@@ -57,6 +57,7 @@ public class ASTConstantPropagation extends AJmmVisitor<Void, Boolean> {
             rhs = rhs.getChild(0);
         }
 
+        if (lhs.getKind().equals(ARRAY_ACCESS.toString())) return false; // do not propagate array members
         String varName = lhs.get("name");
         VarInfo var = variables.get(varName);
 

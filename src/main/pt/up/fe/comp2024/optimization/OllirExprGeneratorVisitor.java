@@ -527,9 +527,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             methodParameters = table.getParameters(methodCalledName);
         }
         List<JmmNode> varArgsNodes = new ArrayList<>();
-        boolean varArgs = hasVarArgs(methodParameters, argNodes);
-        if(varArgs){
-            for(int i = argNodes.size()-1; i > methodParameters.size()-2; i--){
+        boolean varArgs = hasVarArgs(methodParameters);
+        if(varArgs && argNodes.size() >= methodParameters.size()){
+            for(int i = methodParameters.size()-1; i < argNodes.size(); i++){
                 varArgsNodes.add(argNodes.get(i));
             }
         }
@@ -565,7 +565,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
             }
             if(varArgs){
-                if (!TypeUtils.getExprType(varArgsNodes.get(0), table).isArray()){
+                if (varArgsNodes.isEmpty() || !TypeUtils.getExprType(varArgsNodes.get(0), table).isArray()){
                     String arrayType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), true));
                     String arrayValuesType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), false));
                     int size = varArgsNodes.size();
@@ -657,10 +657,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         return new OllirExprResult(code.toString(), computation);
     }
 
-    private boolean hasVarArgs(List<Symbol> methodParameters, List<JmmNode> argNodes){
+    private boolean hasVarArgs(List<Symbol> methodParameters){
         if(methodParameters.isEmpty()) return false;
-        if(!methodParameters.get(methodParameters.size()-1).getType().getName().equals("int...")) return false;
-        return argNodes.size() >= methodParameters.size();
+        return methodParameters.get(methodParameters.size() - 1).getType().getName().equals("int...");
     }
     String getObjectName(JmmNode node){
         if(node.getKind().equals(PAREN_EXPR.getNodeName())){

@@ -6,10 +6,8 @@ class Maluco {
     }
 
     int funk(int a, int b) {
-        int x;
-        x=0;
         this.foo(true);
-        return x;
+        return 1;
     }
 
     public static void main(String[] args) {
