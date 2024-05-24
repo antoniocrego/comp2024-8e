@@ -6,9 +6,9 @@
 
 ## Work Distribution
 
-- António Rego - 33.33 %
-- Diogo Fernandes - 33.33 %
-- João Pereira - 33.33 %
+- António Rego - 40 %
+- Diogo Fernandes - 30 %
+- João Pereira - 30 %
 
 ## Self-Assessment
 
