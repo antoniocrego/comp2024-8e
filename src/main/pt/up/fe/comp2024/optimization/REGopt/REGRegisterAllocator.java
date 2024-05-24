@@ -33,6 +33,9 @@ public class REGRegisterAllocator {
     public OllirResult allocateRegisters(OllirResult ollirResult, int maxRegisters) {
         List<Method> methods = ollirResult.getOllirClass().getMethods();
         for (Method method : methods) {
+            var additional = 1; // this guarantees that the 1st register is stored for the "this" keyword
+            if (method.isStaticMethod()) additional = 0; // if its static, no need to store this
+            additional += method.getParams().size(); // stores the parameters in the first registers
             REGLiveness liveness = new REGLiveness();
             List<REGInstInfo> insts = liveness.livenessAnalysis(method);
             REGGraph graph = buildInterferenceGraph(insts);
@@ -48,7 +51,7 @@ public class REGRegisterAllocator {
                 for (String var : graph.getNodes()) {
                     Descriptor desc = vars.get(var);
                     if (desc != null) {
-                        desc.setVirtualReg(graph.getNode(var).getColor());
+                        desc.setVirtualReg(graph.getNode(var).getColor()+additional);
                     }
                 }
             }
