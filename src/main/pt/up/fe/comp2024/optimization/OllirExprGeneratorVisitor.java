@@ -609,6 +609,28 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                     params.append(", ").append(arg.getCode());
                 }
             }
+            else if (!methodParameters.isEmpty() && methodParameters.get(methodParameters.size()-1).getType().getName().equals("int...") && argNodes.isEmpty()){
+                String arrayType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), true));
+                String arrayValuesType = OptUtils.toOllirType(new Type(TypeUtils.getIntTypeName(), false));
+                String arrayTemp = OptUtils.getTemp();
+                String temp = arrayTemp + arrayType;
+
+                params.append(", ").append(temp);
+
+                code.append(temp);
+                code.append(SPACE);
+                code.append(ASSIGN);
+                code.append(arrayType);
+                code.append(SPACE);
+                code.append("new(array, ");
+                code.append(0);
+                code.append(arrayValuesType);
+                code.append(")");
+                code.append(arrayType);
+                code.append(END_STMT);
+
+                params.append(", ").append(temp);
+            }
         }
 
         var returnType = "";
