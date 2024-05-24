@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.optimization.REGopt;
 
 import org.specs.comp.ollir.Descriptor;
+import org.specs.comp.ollir.Instruction;
 import org.specs.comp.ollir.Method;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp.jmm.report.Report;
@@ -12,16 +13,31 @@ import java.util.*;
 public class REGRegisterAllocator {
 
     private REGGraph buildInterferenceGraph(List<REGInstInfo> insts) {
-        REGGraph graph = new REGGraph(); // i'm not 100% sure of this
-
+        Map<String, Set<Instruction>> liveInsts = new HashMap<>();
         for (REGInstInfo inst : insts) {
-            Set<String> liveOutSet = inst.getOuts();
-            for (String var1 : liveOutSet) {
-                graph.addNode(var1);
-                for (String var2 : liveOutSet) {
-                    if (!var1.equals(var2)) {
-                        graph.addEdge(var1, var2);
-                    }
+            for (String variable : inst.getOuts()) {
+                if (!liveInsts.containsKey(variable)) {
+                    liveInsts.put(variable, new HashSet<>(Collections.singletonList(inst.getInstruction())));
+                }
+                else{
+                    liveInsts.get(variable).add(inst.getInstruction());
+                }
+            }
+        }
+
+        REGGraph graph = new REGGraph();
+
+        for (String variable : liveInsts.keySet()) {
+            graph.addNode(variable);
+        }
+
+        for (String first : liveInsts.keySet()) {
+            for (String second : liveInsts.keySet()) {
+                Set<Instruction> firstSet = new HashSet<>(liveInsts.get(first));
+                Set<Instruction> secondSet = new HashSet<>(liveInsts.get(second));
+                firstSet.retainAll(secondSet);
+                if (!first.equals(second) && !firstSet.isEmpty()) {
+                    graph.addEdge(first, second);
                 }
             }
         }
