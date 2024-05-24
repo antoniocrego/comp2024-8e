@@ -1,9 +1,6 @@
 package pt.up.fe.comp2024.optimization.REGopt;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 public class REGColoring {
     public REGColoring() {
@@ -33,9 +30,10 @@ public class REGColoring {
                 }
             }
 
-            for (REGNode neighbor : neighbors) {
+            var copy = new HashSet<>(neighbors);
+            for (REGNode neighbor : copy) {
                 neighbors.remove(neighbor);
-                if (neighbors.size()< numColors) {
+                if (neighbors.size()<numColors) {
                     stack.push(neighbor.getName());
                 }
             }

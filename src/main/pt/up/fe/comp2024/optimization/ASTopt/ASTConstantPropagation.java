@@ -65,21 +65,20 @@ public class ASTConstantPropagation extends AJmmVisitor<Void, Boolean> {
         if (var != null && var.isNotUsed()){
             var.getNode().getParent().removeChild(var.getNode()); // variable is assigned but reassigned without use, destroy it
             variables.remove(varName);
-            var = null;
         }
-        if (var==null){
-            if (rhs.getKind().equals(INTEGER_LITERAL.toString()) || rhs.getKind().equals(BOOLEAN.toString())){
-                var = new VarInfo(lhs.getParent(), rhs.get("value"));
+        else if (var!=null && !var.isNotUsed()) variables.remove(varName); // remove the old variable
+        if (rhs.getKind().equals(INTEGER_LITERAL.toString()) || rhs.getKind().equals(BOOLEAN.toString())){
+            var = new VarInfo(lhs.getParent(), rhs.get("value"));
+            variables.put(varName, var);
+        }
+        else if (rhs.getKind().equals(VAR_REF_EXPR.toString())){
+            VarInfo rhsVar = variables.get(rhs.get("name"));
+            if (rhsVar != null && rhsVar.getValue() != null){
+                var = new VarInfo(lhs.getParent(), rhsVar.getValue());
                 variables.put(varName, var);
             }
-            else if (rhs.getKind().equals(VAR_REF_EXPR.toString())){
-                VarInfo rhsVar = variables.get(rhs.get("name"));
-                if (rhsVar != null && rhsVar.getValue() != null){
-                    var = new VarInfo(lhs.getParent(), rhsVar.getValue());
-                    variables.put(varName, var);
-                }
-            }
         }
+
 
         return ret;
     }

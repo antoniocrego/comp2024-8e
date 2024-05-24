@@ -3,6 +3,7 @@ package pt.up.fe.comp2024.optimization.REGopt;
 import org.specs.comp.ollir.Descriptor;
 import org.specs.comp.ollir.Method;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
+import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.utils.ReportUtils;
 
@@ -39,7 +40,7 @@ public class REGRegisterAllocator {
             coloring.colorGraph(graph);
 
             if (maxRegisters!=0 && graph.colorsUsed() > maxRegisters) {
-                ollirResult.getReports().add(ReportUtils.buildErrorReport(Stage.OPTIMIZATION, null, "Register allocation failed: " + graph.colorsUsed() + " registers used, " + maxRegisters + " available"));
+                ollirResult.getReports().add(Report.newError(Stage.OPTIMIZATION, -1, -1, "Register allocation failed: " + graph.colorsUsed() + " registers used, " + maxRegisters + " available", null));
                 return ollirResult;
             }
             else {
@@ -49,6 +50,7 @@ public class REGRegisterAllocator {
                     if (desc != null) {
                         desc.setVirtualReg(graph.getNode(var).getColor());
                     }
+                    System.out.println();
                 }
             }
         }

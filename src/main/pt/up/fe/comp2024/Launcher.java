@@ -67,7 +67,7 @@ public class Launcher {
         JmmAnalysisImpl sema = new JmmAnalysisImpl();
         JmmSemanticsResult semanticsResult = sema.semanticAnalysis(parserResult);
         System.out.println(semanticsResult.getReports());
-        //TestUtils.noErrors(semanticsResult.getReports());
+        TestUtils.noErrors(semanticsResult.getReports());
 
         //Print AST resulting from semantic analysis
         //System.out.println(semanticsResult.getRootNode().toTree());
@@ -75,7 +75,7 @@ public class Launcher {
         // Optimization stage
         JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
         OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
-        //TestUtils.noErrors(ollirResult.getReports());
+        TestUtils.noErrors(ollirResult.getReports());
 
         // Print OLLIR code
         System.out.println(ollirResult.getOllirCode());
